@@ -1,0 +1,20 @@
+[
+    {
+        "nombre": "Big Data",
+        "profesor": "Profesor 1",
+        "descripcion": "Trabajo con big data",
+        "plazas": 5
+    },
+    {
+        "nombre": "Small Data",
+        "profesor": "Profesor 1",
+        "descripcion": "Trabajo con small data",
+        "plazas": 20
+    },
+    {
+        "nombre": "Medium Data",
+        "profesor": "Profesor 1",
+        "descripcion": "Trabajo con medium data",
+        "plazas": 10
+    }
+]
