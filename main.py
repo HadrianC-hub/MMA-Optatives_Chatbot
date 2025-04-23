@@ -48,7 +48,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     optativos = cargar_optativas()  # Cargar las optativas desde el archivo
     texto = "📚 *Cursos optativos disponibles:*\n\n"
     for curso in optativos:
-        texto += f"• *{curso['nombre']}* (Prof: {curso['profesor']}, Créditos: {curso['creditos']}, Plazas: {curso['plazas']})\n"
+        plazas = curso.get('plazas', 'No disponible')  # Usar valor por defecto si no existe 'plazas'
+        texto += f"• *{curso['nombre']}* (Prof: {curso['profesor']}, Plazas: {plazas})\n"
     texto += "\nSi eres profesor, usa /login"
     await update.message.reply_markdown(texto)
 
