@@ -9,7 +9,7 @@ from telegram.ext import (
 import json
 import os
 
-TOKEN = '7749633455:AAE06Kiq7Hj2f0Y5fMVD6DpJ0HsB6iXaVwI'  # Reemplaza con tu token real
+TOKEN = '7805303273:AAFd5IIphHOtcFA8FLV9WZRl1FegvhnoaRQ'  # Reemplaza con tu token real
 
 profesores_validos = {
     "juanperez": "1234",
