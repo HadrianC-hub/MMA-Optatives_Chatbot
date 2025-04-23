@@ -9,7 +9,7 @@ from telegram.ext import (
 import json
 import os
 
-TOKEN = '7805303273:AAFd5IIphHOtcFA8FLV9WZRl1FegvhnoaRQ'  # Reemplaza con tu token real
+TOKEN = '7709445317:AAEoLX-x4R8l3MGQIIR3Y9virP0b9NOFms0'  # Reemplaza con tu token real
 
 profesores_validos = {
     "juanperez": "1234",
@@ -121,8 +121,7 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def manejar_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id not in usuarios_logueados:
-        await update.message.reply_text("❌ No estás logueado.")
-        return
+        return ConversationHandler.END  # No responder si no está logueado
 
     texto = update.message.text
 
@@ -185,6 +184,7 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
     lineas = texto.strip().split("\n")
     estudiantes = cargar_estudiantes()
     nuevos = 0
+    duplicados = []
 
     for linea in lineas:
         partes = linea.strip().split()
@@ -192,12 +192,24 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
             continue
         nombre = " ".join(partes[:-1])
         grupo = partes[-1]
+
+        ya_existe = any(e["nombre"] == nombre and e["grupo"] == grupo for e in estudiantes)
+        if ya_existe:
+            duplicados.append(f"{nombre} ({grupo})")
+            continue
+
         estudiantes.append({"nombre": nombre, "grupo": grupo, "optativa": ""})
         nuevos += 1
 
     guardar_estudiantes(estudiantes)
-    await update.message.reply_text(f"✅ {nuevos} estudiantes agregados.")
+
+    respuesta = f"✅ {nuevos} estudiante(s) agregado(s).\n"
+    if duplicados:
+        respuesta += "\n⚠️ *No se agregaron por estar duplicados:*\n"
+        respuesta += "\n".join(duplicados)
+    await update.message.reply_markdown(respuesta)
     return ConversationHandler.END
+
 
 async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
@@ -297,6 +309,37 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(respuesta)
     return ConversationHandler.END
 
+async def manejar_consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    mensaje = update.message.text.strip().lower()
+    user_id = update.effective_user.id
+
+    # No hacer nada si el usuario es un profesor logueado
+    if user_id in usuarios_logueados:
+        return
+
+    optativas = cargar_optativas()
+    coincidencias_opt = [o for o in optativas if o["nombre"].lower() == mensaje]
+
+    if coincidencias_opt:
+        opt = coincidencias_opt[0]
+        texto = f"📘 *{opt['nombre']}*\n👨‍🏫 Profesor: {opt['profesor']}\n📝 {opt.get('descripcion', 'Sin descripción')}"
+        await update.message.reply_markdown(texto)
+        return
+
+    # Buscar por nombre de profesor
+    profesores = {}
+    for o in optativas:
+        prof = o["profesor"].lower()
+        profesores.setdefault(prof, []).append(o)
+
+    if mensaje in profesores:
+        cursos = profesores[mensaje]
+        texto = f"👨‍🏫 *{cursos[0]['profesor']}* imparte:\n\n"
+        for c in cursos:
+            texto += f"• *{c['nombre']}* — {c.get('descripcion', '')}\n"
+        await update.message.reply_markdown(texto)
+        return
+
 # ---------- MAIN ----------
 
 if __name__ == "__main__":
@@ -312,7 +355,10 @@ if __name__ == "__main__":
     )
 
     profesor_conv = ConversationHandler(
-        entry_points=[MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_menu)],
+        entry_points=[MessageHandler(
+            filters.TEXT & ~filters.COMMAND & filters.User(user_id=usuarios_logueados),
+            manejar_menu
+        )],
         states={
             ESPERAR_ESTUDIANTES: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_estudiantes)],
             ESPERAR_NOMBRE_ELIMINAR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_nombre_eliminar)],
@@ -325,6 +371,6 @@ if __name__ == "__main__":
     app.add_handler(login_conv)
     app.add_handler(profesor_conv)
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
-
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_consulta_estudiante))
     print("🤖 Bot corriendo...")
     app.run_polling()
