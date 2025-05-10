@@ -1,14 +1,1 @@
-[
-    {
-        "nombre": "Big Data",
-        "profesor": "Profesor 1",
-        "descripcion": "Trabajo con big data",
-        "plazas": 5
-    },
-    {
-        "nombre": "Small Data",
-        "profesor": "Pepe",
-        "descripcion": "La mejor optativa",
-        "plazas": -1
-    }
-]
+[]

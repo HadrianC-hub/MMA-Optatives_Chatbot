@@ -61,7 +61,7 @@ cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
 menu_profesor = ReplyKeyboardMarkup([
     [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
     [KeyboardButton("📚 Ver optativas"), KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas")],
-    [KeyboardButton("📌 Asignar optativa"), KeyboardButton("🧹 Vaciar lista"), KeyboardButton("🔓 Cerrar sesión")]
+    [KeyboardButton("📌 Asignar optativa"), KeyboardButton("🔓 Cerrar sesión")]
 ], resize_keyboard=True)
 
 # ---------- CREACIÓN DE OPTATIVAS ----------
@@ -161,6 +161,15 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
 
     optativas = cargar_optativas()
     nombres_existentes = {opt["nombre"] for opt in optativas}
+
+    if texto == "TODO":
+        guardar_optativas([])
+        estudiantes = cargar_estudiantes()
+        for est in estudiantes:
+            est["optativa"] = ""
+        guardar_estudiantes(estudiantes)
+        await update.message.reply_text("🗑️ Todas las optativas han sido eliminadas y los estudiantes desasignados.")
+        return ConversationHandler.END
 
     eliminadas = []
     no_encontradas = []
@@ -338,10 +347,6 @@ async def manejar_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ESPERAR_NOMBRE_ELIMINAR
 
-    elif texto == "🧹 Vaciar lista":
-        guardar_estudiantes([])
-        await update.message.reply_text("🗑️ Lista vaciada.")
-
     elif texto == "📌 Asignar optativa":
         await update.message.reply_text(
             "📥 Envía los estudiantes a asignar en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo\nNombre2 Apellido3 Apellido4 Grupo2\nOptativa`\n",
@@ -392,8 +397,14 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
 async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
     lineas = texto.split("\n")
-
     estudiantes = cargar_estudiantes()
+
+    if texto == "TODO":
+        guardar_estudiantes([])
+        await update.message.reply_text("🗑️ Todos los estudiantes han sido eliminados.")
+        context.user_data.pop("estado", None)
+        return ConversationHandler.END
+
     no_encontrados = []
     eliminados = 0
 
@@ -539,10 +550,6 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 reply_markup=cancelar_inline
             )
             context.user_data["estado"] = "esperando_eliminar"
-
-        elif texto == "🧹 Vaciar lista":
-            guardar_estudiantes([])
-            await update.message.reply_text("🗑️ Lista vaciada.")
 
         elif texto == "📌 Asignar optativa":
             await update.message.reply_text(
