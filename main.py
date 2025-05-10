@@ -9,6 +9,7 @@ from telegram.ext import (
 import json
 import os
 
+
 TOKEN = '8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0'  # Reemplaza con tu token real
 usuarios_logueados = set()
 LOGIN_USUARIO, LOGIN_CLAVE, ESPERAR_ESTUDIANTES, ESPERAR_NOMBRE_ELIMINAR, ESPERAR_ASIGNAR = range(5)
@@ -53,6 +54,10 @@ cancelar_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar", callback_data="cancelar")]
 ])
 
+cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
+    [InlineKeyboardButton("❎ Cancelar Creación de Optativa", callback_data="cancelar_creacion_optativa")]
+])
+
 menu_profesor = ReplyKeyboardMarkup([
     [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
     [KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas"), KeyboardButton("📌 Asignar optativa")],
@@ -75,31 +80,44 @@ def guardar_optativas(optativas):
         json.dump(optativas, file, indent=4)
 
 # Función para iniciar la creación de optativa
-async def iniciar_crear_optativa(update, context):
-    await update.message.reply_text("📝 Ingresa el nombre de la optativa:")
+async def iniciar_crear_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📝 Vamos a crear una nueva optativa.\n\nPor favor, ingresa el nombre de la optativa:",
+        reply_markup=cancelar_creacion_optativa_inline  # Usar el nuevo botón de cancelación
+    )
     return CREAR_NOMBRE
+
 
 # En este paso, recibirás el nombre de la optativa
 async def recibir_nombre_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.user_data['optativa'] = {'nombre': update.message.text}
-    await update.message.reply_text("👨‍🏫 Escribe el nombre del profesor que impartirá la optativa:")
+    nombre = update.message.text.strip()
+    
+    # Cargar optativas existentes
+    with open("optativas.json", "r", encoding="utf-8") as f:
+        optativas = json.load(f)
+    
+    # Verificar si ya existe una optativa con ese nombre
+    if any(optativa["nombre"].lower() == nombre.lower() for optativa in optativas):
+        await update.message.reply_text("⚠️ Ya existe una optativa con ese nombre. Por favor, elige uno diferente.")
+        return CREAR_NOMBRE
+
+    # Guardar nombre temporalmente
+    context.user_data["optativa"] = {"nombre": nombre}
+    await update.message.reply_text("✏️ Ahora ingresa el nombre del profesor que impartirá la optativa:")
     return CREAR_PROFESOR
 
-# En este paso, recibirás el nombre del profesor
+# Otros estados de la conversación
 async def recibir_profesor_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['optativa']['profesor'] = update.message.text
     await update.message.reply_text("✏️ Escribe una descripción para la optativa:")
     return CREAR_DESCRIPCION
 
-# En este paso, recibirás la descripción de la optativa
 async def recibir_descripcion_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
     context.user_data["optativa"]["descripcion"] = texto  # Guardamos la descripción
-
     await update.message.reply_text("🔢 Ingresa el número de plazas disponibles (puedes poner -1 para un número infinito):")
     return CREAR_PLAZAS  # Estado para recibir el número de plazas
 
-# En este paso, recibirás el número de plazas
 async def recibir_plazas_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
     try:
@@ -118,13 +136,6 @@ async def recibir_plazas_optativa(update: Update, context: ContextTypes.DEFAULT_
     await update.message.reply_text(f"✅ Optativa '{context.user_data['optativa']['nombre']}' creada con éxito.\nProfesor: {context.user_data['optativa']['profesor']}\nDescripción: {context.user_data['optativa']['descripcion']}\nPlazas: {context.user_data['optativa']['plazas']}")
     context.user_data.pop("optativa", None)  # Limpiamos los datos de la optativa
     return ConversationHandler.END
-
-# Función para cancelar la creación
-async def cancelar_callback(update, context):
-    await update.message.reply_text("❌ Creación de optativa cancelada.", reply_markup=ReplyKeyboardRemove())
-    context.user_data.clear()
-    return ConversationHandler.END
-
 
 # ---------- COMANDOS PRINCIPALES ----------
 
@@ -176,18 +187,41 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("❌ No tienes una sesión activa.")
         return ConversationHandler.END
 
-    # Borrar el mensaje anterior con el botón
+    # Borrar el mensaje con el botón
     await query.message.delete()
 
-    context.user_data.pop("estado", None)
+    # Limpiar los datos del usuario
+    context.user_data.clear()
 
-
+    # Enviar mensaje de cancelación
     await context.bot.send_message(
         chat_id=query.message.chat_id,
         text="✅ Acción cancelada.\n📋 Menú principal:",
         reply_markup=menu_profesor
     )
+
+    # Terminar la conversación completamente
     return ConversationHandler.END
+
+# ---------- FUNCIÓN CANCELAR CREACIÓN DE OPTATIVA ----------
+async def cancelar_creacion_optativa_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    # Limpiar los datos de la creación de optativa
+    context.user_data.pop("optativa", None)  # Limpiar cualquier dato temporal relacionado con la optativa
+
+    # Borrar el mensaje con el botón de cancelación
+    await query.message.delete()
+
+    # Enviar mensaje confirmando la cancelación
+    await context.bot.send_message(
+        chat_id=query.message.chat_id,
+        text="✅ La creación de la optativa ha sido cancelada.\n📋 Menú principal:",
+        reply_markup=menu_profesor  # Reemplaza esto con el menú que deseas mostrar después de cancelar
+    )
+
+    return ConversationHandler.END  # Terminar la conversación de creación de optativa
 
 # ---------- MENÚ DE PROFESOR ----------
 
@@ -490,25 +524,26 @@ if __name__ == "__main__":
         fallbacks=[]
     )
 
+    # ---------- Configuración del ConversationHandler ----------
     crear_optativa_handler = ConversationHandler(
-    entry_points=[MessageHandler(filters.Regex("^➕ Crear optativa$"), iniciar_crear_optativa)],
-    states={
-        CREAR_NOMBRE: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_nombre_optativa)],
-        CREAR_PROFESOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_profesor_optativa)],
-        CREAR_DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion_optativa)],
-        CREAR_PLAZAS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_plazas_optativa)],
-    },
-    fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^❎ Cancelar$")],
-)
+        entry_points=[MessageHandler(filters.Regex("^➕ Crear optativa$"), iniciar_crear_optativa)],
+        states={
+            CREAR_NOMBRE: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_nombre_optativa)],
+            CREAR_PROFESOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_profesor_optativa)],
+            CREAR_DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion_optativa)],
+            CREAR_PLAZAS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_plazas_optativa)],
+        },
+        fallbacks=[CallbackQueryHandler(cancelar_creacion_optativa_callback, pattern="^cancelar_creacion_optativa$")]
+    )
 
 
 
-
+    app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
     app.add_handler(crear_optativa_handler)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
-    app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
+
 
     print("🤖 Bot corriendo...")
     app.run_polling()
