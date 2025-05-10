@@ -4,12 +4,12 @@ from telegram import (
 )
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
-    CallbackQueryHandler, ContextTypes, ConversationHandler, filters
+    CallbackQueryHandler, ContextTypes, ConversationHandler, filters,
 )
 import json
 import os
 
-TOKEN = '7709445317:AAEoLX-x4R8l3MGQIIR3Y9virP0b9NOFms0'  # Reemplaza con tu token real
+TOKEN = '8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0'  # Reemplaza con tu token real
 
 profesores_validos = {
     "juanperez": "1234",
@@ -99,6 +99,8 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Borrar el mensaje anterior con el botón
     await query.message.delete()
 
+    context.user_data.pop("estado", None)
+
     teclado = [[
         KeyboardButton("👥 Ver estudiantes"),
         KeyboardButton("➕ Agregar estudiantes"),
@@ -121,7 +123,7 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def manejar_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     if user_id not in usuarios_logueados:
-        return ConversationHandler.END  # No responder si no está logueado
+        return ConversationHandler.END  # <-- Muy importante, no solo "return"
 
     texto = update.message.text
 
@@ -208,6 +210,7 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
         respuesta += "\n⚠️ *No se agregaron por estar duplicados:*\n"
         respuesta += "\n".join(duplicados)
     await update.message.reply_markdown(respuesta)
+    context.user_data.pop("estado", None)
     return ConversationHandler.END
 
 
@@ -242,6 +245,7 @@ async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_
         respuesta += "\n⚠️ *Estudiantes no eliminados por error de escritura:*\n"
         respuesta += "\n".join(no_encontrados)
     await update.message.reply_markdown(respuesta)
+    context.user_data.pop("estado", None)
     return ConversationHandler.END
 
 async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -307,23 +311,86 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if errores:
         respuesta += "\n⚠️ Errores:\n" + "\n".join(errores)
     await update.message.reply_text(respuesta)
+    context.user_data.pop("estado", None)
     return ConversationHandler.END
 
-async def manejar_consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    mensaje = update.message.text.strip().lower()
+async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    texto = update.message.text.strip()
 
-    # No hacer nada si el usuario es un profesor logueado
+    estado = context.user_data.get("estado")
+
+    # ---------- PROFESOR EN MODO OPERACIÓN ----------
     if user_id in usuarios_logueados:
+        if estado == "esperando_estudiantes":
+            return await recibir_estudiantes(update, context)
+        elif estado == "esperando_eliminar":
+            return await recibir_nombre_eliminar(update, context)
+        elif estado == "esperando_asignar":
+            return await recibir_asignar(update, context)
+
+        # ---------- PROFESOR EN MENÚ ----------
+        if texto == "👥 Ver estudiantes":
+            estudiantes = cargar_estudiantes()
+            if not estudiantes:
+                await update.message.reply_text("📂 Lista vacía.")
+                return
+
+            grupos = {}
+            for est in estudiantes:
+                grupo = est["grupo"]
+                grupos.setdefault(grupo, []).append(est)
+
+            respuesta = "👥 *Estudiantes por grupo:*\n\n"
+            for grupo in sorted(grupos.keys()):
+                respuesta += f"*Grupo {grupo}:*\n"
+                for est in grupos[grupo]:
+                    opt = est["optativa"] if est["optativa"] else "Ninguna"
+                    respuesta += f"• {est['nombre']} - Optativa: {opt}\n"
+                respuesta += "\n"
+            await update.message.reply_markdown(respuesta)
+
+        elif texto == "➕ Agregar estudiantes":
+            await update.message.reply_text(
+                "📨 Envía los estudiantes en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo`\nUno por línea.",
+                parse_mode="Markdown",
+                reply_markup=cancelar_inline
+            )
+            context.user_data["estado"] = "esperando_estudiantes"
+
+        elif texto == "❌ Eliminar estudiante":
+            await update.message.reply_text(
+                "✂️ Escribe los estudiantes a eliminar en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo`\nUno por línea.:",
+                reply_markup=cancelar_inline
+            )
+            context.user_data["estado"] = "esperando_eliminar"
+
+        elif texto == "🧹 Vaciar lista":
+            guardar_estudiantes([])
+            await update.message.reply_text("🗑️ Lista vaciada.")
+
+        elif texto == "📌 Asignar optativa":
+            await update.message.reply_text(
+                "📥 Envía los estudiantes a asignar en el formato:\n\n`Nombre Apellido Grupo\n...\nOptativa`\n",
+                parse_mode="Markdown",
+                reply_markup=cancelar_inline
+            )
+            context.user_data["estado"] = "esperando_asignar"
+
+        elif texto == "🔓 Cerrar sesión":
+            usuarios_logueados.discard(user_id)
+            context.user_data.clear()
+            await update.message.reply_text("👋 Sesión cerrada.", reply_markup=ReplyKeyboardRemove())
         return
 
+    # ---------- ESTUDIANTE ----------
     optativas = cargar_optativas()
-    coincidencias_opt = [o for o in optativas if o["nombre"].lower() == mensaje]
+    coincidencias_opt = [o for o in optativas if o["nombre"].lower() == texto.lower()]
 
     if coincidencias_opt:
         opt = coincidencias_opt[0]
-        texto = f"📘 *{opt['nombre']}*\n👨‍🏫 Profesor: {opt['profesor']}\n📝 {opt.get('descripcion', 'Sin descripción')}"
-        await update.message.reply_markdown(texto)
+        mensaje = f"📘 *{opt['nombre']}*\n👨‍🏫 Profesor: {opt['profesor']}\n📝 {opt.get('descripcion', 'Sin descripción')}"
+        await update.message.reply_markdown(mensaje)
         return
 
     # Buscar por nombre de profesor
@@ -332,13 +399,12 @@ async def manejar_consulta_estudiante(update: Update, context: ContextTypes.DEFA
         prof = o["profesor"].lower()
         profesores.setdefault(prof, []).append(o)
 
-    if mensaje in profesores:
-        cursos = profesores[mensaje]
-        texto = f"👨‍🏫 *{cursos[0]['profesor']}* imparte:\n\n"
+    if texto.lower() in profesores:
+        cursos = profesores[texto.lower()]
+        mensaje = f"👨‍🏫 *{cursos[0]['profesor']}* imparte:\n\n"
         for c in cursos:
-            texto += f"• *{c['nombre']}* — {c.get('descripcion', '')}\n"
-        await update.message.reply_markdown(texto)
-        return
+            mensaje += f"• *{c['nombre']}* — {c.get('descripcion', '')}\n"
+        await update.message.reply_markdown(mensaje)
 
 # ---------- MAIN ----------
 
@@ -354,23 +420,10 @@ if __name__ == "__main__":
         fallbacks=[]
     )
 
-    profesor_conv = ConversationHandler(
-        entry_points=[MessageHandler(
-            filters.TEXT & ~filters.COMMAND & filters.User(user_id=usuarios_logueados),
-            manejar_menu
-        )],
-        states={
-            ESPERAR_ESTUDIANTES: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_estudiantes)],
-            ESPERAR_NOMBRE_ELIMINAR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_nombre_eliminar)],
-            ESPERAR_ASIGNAR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_asignar)],
-        },
-        fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^cancelar$")]
-    )
-
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
-    app.add_handler(profesor_conv)
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_consulta_estudiante))
+
     print("🤖 Bot corriendo...")
     app.run_polling()
