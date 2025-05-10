@@ -10,16 +10,11 @@ import json
 import os
 
 TOKEN = '8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0'  # Reemplaza con tu token real
-
-profesores_validos = {
-    "juanperez": "1234",
-    "anagarcia": "abcd"
-}
-
 usuarios_logueados = set()
 LOGIN_USUARIO, LOGIN_CLAVE, ESPERAR_ESTUDIANTES, ESPERAR_NOMBRE_ELIMINAR, ESPERAR_ASIGNAR = range(5)
 ESTUDIANTES_FILE = "estudiantes.json"
 OPTATIVAS_FILE = "optativas.json"
+CREAR_NOMBRE, CREAR_DESCRIPCION, CREAR_PLAZAS = range(20, 23)
 
 def cargar_estudiantes():
     if not os.path.exists(ESTUDIANTES_FILE):
@@ -37,10 +32,35 @@ def guardar_estudiantes(estudiantes):
     with open(ESTUDIANTES_FILE, "w", encoding="utf-8") as f:
         json.dump(estudiantes, f, indent=4, ensure_ascii=False)
 
+def cargar_profesores():
+    try:
+        with open("profesores.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+def validar_credenciales(usuario, clave):
+    if usuario == "superadmin" and clave == "spr1234":
+        return {"nombre": "SuperAdmin"}
+    profesores = cargar_profesores()
+    for prof in profesores:
+        if prof["usuario"] == usuario and prof["clave"] == clave:
+            return prof  # Devuelve el objeto completo
+    return None
+
 # ---------- BOTÓN CANCELAR INLINE ----------
 cancelar_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar", callback_data="cancelar")]
 ])
+
+menu_profesor = ReplyKeyboardMarkup([
+    [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
+    [KeyboardButton("📚 Crear optativa"), KeyboardButton("🗑️ Eliminar optativas"), KeyboardButton("📌 Asignar optativa")],
+    [KeyboardButton("🧹 Vaciar lista"), KeyboardButton("🔓 Cerrar sesión")]
+], resize_keyboard=True)
+
+
+
 
 # ---------- COMANDOS PRINCIPALES ----------
 
@@ -63,27 +83,23 @@ async def recibir_usuario(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return LOGIN_CLAVE
 
 async def recibir_clave(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = context.user_data["usuario"]
-    clave = update.message.text
-    if user in profesores_validos and profesores_validos[user] == clave:
+    clave = update.message.text.strip()
+    usuario = context.user_data.get("usuario")
+    profesor = validar_credenciales(usuario, clave)
+
+    if profesor:
+        user_id = update.effective_user.id
         usuarios_logueados.add(update.effective_user.id)
-        teclado = [[
-            KeyboardButton("👥 Ver estudiantes"),
-            KeyboardButton("➕ Agregar estudiantes"),
-        ], [
-            KeyboardButton("❌ Eliminar estudiante"),
-            KeyboardButton("🧹 Vaciar lista"),
-        ], [
-            KeyboardButton("📌 Asignar optativa"),
-            KeyboardButton("🔓 Cerrar sesión")
-        ]]
+        context.user_data.clear()
+
         await update.message.reply_text(
-            "✅ Login exitoso.",
-            reply_markup=ReplyKeyboardMarkup(teclado, resize_keyboard=True)
+            f"🔓 Bienvenido, {profesor['nombre']}!", 
+            reply_markup=menu_profesor
         )
+        return ConversationHandler.END
     else:
-        await update.message.reply_text("❌ Usuario o contraseña incorrectos.")
-    return ConversationHandler.END
+        await update.message.reply_text("❌ Credenciales incorrectas. Intenta nuevamente:")
+        return LOGIN_CLAVE
 
 # ---------- CANCELAR OPERACIÓN ----------
 
@@ -101,20 +117,11 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     context.user_data.pop("estado", None)
 
-    teclado = [[
-        KeyboardButton("👥 Ver estudiantes"),
-        KeyboardButton("➕ Agregar estudiantes"),
-    ], [
-        KeyboardButton("❌ Eliminar estudiante"),
-        KeyboardButton("🧹 Vaciar lista"),
-    ], [
-        KeyboardButton("📌 Asignar optativa"),
-        KeyboardButton("🔓 Cerrar sesión")
-    ]]
+
     await context.bot.send_message(
         chat_id=query.message.chat_id,
         text="✅ Acción cancelada.\n📋 Menú principal:",
-        reply_markup=ReplyKeyboardMarkup(teclado, resize_keyboard=True)
+        reply_markup=menu_profesor
     )
     return ConversationHandler.END
 
@@ -212,7 +219,6 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
     await update.message.reply_markdown(respuesta)
     context.user_data.pop("estado", None)
     return ConversationHandler.END
-
 
 async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip()
