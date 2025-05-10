@@ -60,8 +60,8 @@ cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
 
 menu_profesor = ReplyKeyboardMarkup([
     [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
-    [KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas"), KeyboardButton("📌 Asignar optativa")],
-    [KeyboardButton("🧹 Vaciar lista"), KeyboardButton("🔓 Cerrar sesión")]
+    [KeyboardButton("📚 Ver optativas"), KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas")],
+    [KeyboardButton("📌 Asignar optativa"), KeyboardButton("🧹 Vaciar lista"), KeyboardButton("🔓 Cerrar sesión")]
 ], resize_keyboard=True)
 
 # ---------- CREACIÓN DE OPTATIVAS ----------
@@ -86,7 +86,6 @@ async def iniciar_crear_optativa(update: Update, context: ContextTypes.DEFAULT_T
         reply_markup=cancelar_creacion_optativa_inline  # Usar el nuevo botón de cancelación
     )
     return CREAR_NOMBRE
-
 
 # En este paso, recibirás el nombre de la optativa
 async def recibir_nombre_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -186,6 +185,28 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
 
     await update.message.reply_text(mensaje, reply_markup=menu_profesor)
     return ConversationHandler.END
+
+# ---------- VISUALIZACIÓN DE OPTATIVAS ----------
+
+async def ver_optativas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    optativas = cargar_optativas()
+
+    if not optativas:
+        await update.message.reply_text("📭 No hay optativas registradas.")
+        return
+
+    mensaje = "📚 *Listado de Optativas:*\n\n"
+    for i, opt in enumerate(optativas, 1):
+        plazas = "Ilimitadas" if opt.get("plazas") == -1 else opt.get("plazas")
+        mensaje += (
+            f"🔹 *{i}. {opt.get('nombre')}*\n"
+            f"   👨‍🏫 Profesor: {opt.get('profesor')}\n"
+            f"   📝 Descripción: {opt.get('descripcion')}\n"
+            f"   👥 Plazas: {plazas}\n\n"
+        )
+
+    await update.message.reply_text(mensaje, parse_mode="Markdown")
+
 
 # ---------- COMANDOS PRINCIPALES ----------
 
@@ -594,9 +615,10 @@ if __name__ == "__main__":
     )
 
 
+    app.add_handler(MessageHandler(filters.Regex("^📚 Ver optativas$"), ver_optativas))
+    app.add_handler(eliminar_optativas_handler)
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
     app.add_handler(crear_optativa_handler)
-    app.add_handler(eliminar_optativas_handler)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
