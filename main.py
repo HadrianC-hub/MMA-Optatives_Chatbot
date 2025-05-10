@@ -122,19 +122,69 @@ async def recibir_plazas_optativa(update: Update, context: ContextTypes.DEFAULT_
     texto = update.message.text.strip()
     try:
         plazas = int(texto)
+        if plazas < 0:
+            plazas = -1  # Capacidad ilimitada
         context.user_data["optativa"]["plazas"] = plazas
     except ValueError:
         await update.message.reply_text("⚠️ Por favor, ingresa un número válido para las plazas.")
         return CREAR_PLAZAS  # Vuelve a pedir el número de plazas si no es válido
 
     # Guardamos la nueva optativa
-    optativas = cargar_optativas()  # Suponiendo que tienes una función para cargar optativas
-    optativas.append(context.user_data["optativa"])  # Añadir la nueva optativa
-    guardar_optativas(optativas)  # Guardamos las optativas nuevamente
+    optativas = cargar_optativas()
+    optativas.append(context.user_data["optativa"])
+    guardar_optativas(optativas)
 
-    # Confirmamos la creación de la optativa
-    await update.message.reply_text(f"✅ Optativa '{context.user_data['optativa']['nombre']}' creada con éxito.\nProfesor: {context.user_data['optativa']['profesor']}\nDescripción: {context.user_data['optativa']['descripcion']}\nPlazas: {context.user_data['optativa']['plazas']}")
-    context.user_data.pop("optativa", None)  # Limpiamos los datos de la optativa
+    texto_plazas = "Ilimitadas" if plazas == -1 else str(plazas)
+
+    await update.message.reply_text(
+        f"✅ Optativa '{context.user_data['optativa']['nombre']}' creada con éxito.\n"
+        f"Profesor: {context.user_data['optativa']['profesor']}\n"
+        f"Descripción: {context.user_data['optativa']['descripcion']}\n"
+        f"Plazas: {texto_plazas}"
+    )
+    context.user_data.pop("optativa", None)
+    return ConversationHandler.END
+
+# ---------- ELIMINACIÓN DE OPTATIVAS ----------
+
+ELIMINAR_OPTATIVAS = range(1)
+
+async def iniciar_eliminar_optativas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🗑️ Envía los nombres de las optativas que deseas eliminar, uno por línea:",
+        reply_markup=cancelar_inline
+    )
+    return ELIMINAR_OPTATIVAS
+
+async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    texto = update.message.text.strip()
+    nombres_a_eliminar = [line.strip() for line in texto.splitlines() if line.strip()]
+
+    optativas = cargar_optativas()
+    nombres_existentes = {opt["nombre"] for opt in optativas}
+
+    eliminadas = []
+    no_encontradas = []
+
+    for nombre in nombres_a_eliminar:
+        if nombre in nombres_existentes:
+            optativas = [opt for opt in optativas if opt["nombre"] != nombre]
+            eliminadas.append(nombre)
+        else:
+            no_encontradas.append(nombre)
+
+    guardar_optativas(optativas)
+
+    mensaje = ""
+    if eliminadas:
+        mensaje += "✅ Optativas eliminadas:\n" + "\n".join(f"• {n}" for n in eliminadas) + "\n"
+    if no_encontradas:
+        mensaje += "\n⚠️ No se encontraron:\n" + "\n".join(f"• {n}" for n in no_encontradas)
+
+    if not mensaje:
+        mensaje = "⚠️ No se procesó ninguna entrada válida."
+
+    await update.message.reply_text(mensaje, reply_markup=menu_profesor)
     return ConversationHandler.END
 
 # ---------- COMANDOS PRINCIPALES ----------
@@ -524,7 +574,6 @@ if __name__ == "__main__":
         fallbacks=[]
     )
 
-    # ---------- Configuración del ConversationHandler ----------
     crear_optativa_handler = ConversationHandler(
         entry_points=[MessageHandler(filters.Regex("^➕ Crear optativa$"), iniciar_crear_optativa)],
         states={
@@ -536,10 +585,18 @@ if __name__ == "__main__":
         fallbacks=[CallbackQueryHandler(cancelar_creacion_optativa_callback, pattern="^cancelar_creacion_optativa$")]
     )
 
+    eliminar_optativas_handler = ConversationHandler(
+        entry_points=[MessageHandler(filters.Regex("^🗑️ Eliminar optativas$"), iniciar_eliminar_optativas)],
+        states={
+            ELIMINAR_OPTATIVAS: [MessageHandler(filters.TEXT & ~filters.COMMAND, procesar_eliminar_optativas)],
+        },
+        fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^cancelar$")]
+    )
 
 
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
     app.add_handler(crear_optativa_handler)
+    app.add_handler(eliminar_optativas_handler)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
