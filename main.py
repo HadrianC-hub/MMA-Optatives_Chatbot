@@ -16,6 +16,12 @@ LOGIN_USUARIO, LOGIN_CLAVE, ESPERAR_ESTUDIANTES, ESPERAR_NOMBRE_ELIMINAR, ESPERA
 ESTUDIANTES_FILE = "estudiantes.json"
 OPTATIVAS_FILE = "optativas.json"
 
+menu_profesor = ReplyKeyboardMarkup([
+    [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
+    [KeyboardButton("📚 Ver optativas"), KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas")],
+    [KeyboardButton("👨‍🏫 Ver profesores"), KeyboardButton("➕ Agregar profesores"), KeyboardButton("❌ Eliminar profesores")],
+    [KeyboardButton("📌 Asignar optativa"), KeyboardButton("🔓 Cerrar sesión")]
+], resize_keyboard=True)
 
 def cargar_estudiantes():
     if not os.path.exists(ESTUDIANTES_FILE):
@@ -42,7 +48,7 @@ def cargar_profesores():
 
 def validar_credenciales(usuario, clave):
     if usuario == "superadmin" and clave == "spr1234":
-        return {"nombre": "SuperAdmin"}
+        return {"usuario": "superadmin", "nombre": "SuperAdmin"}
     profesores = cargar_profesores()
     for prof in profesores:
         if prof["usuario"] == usuario and prof["clave"] == clave:
@@ -57,12 +63,6 @@ cancelar_inline = InlineKeyboardMarkup([
 cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar Creación de Optativa", callback_data="cancelar_creacion_optativa")]
 ])
-
-menu_profesor = ReplyKeyboardMarkup([
-    [KeyboardButton("👥 Ver estudiantes"), KeyboardButton("➕ Agregar estudiantes"), KeyboardButton("❌ Eliminar estudiante")],
-    [KeyboardButton("📚 Ver optativas"), KeyboardButton("➕ Crear optativa"), KeyboardButton("🗑️ Eliminar optativas")],
-    [KeyboardButton("📌 Asignar optativa"), KeyboardButton("🔓 Cerrar sesión")]
-], resize_keyboard=True)
 
 # ---------- CREACIÓN DE OPTATIVAS ----------
 
@@ -216,7 +216,6 @@ async def ver_optativas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(mensaje, parse_mode="Markdown")
 
-
 # ---------- COMANDOS PRINCIPALES ----------
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -244,8 +243,12 @@ async def recibir_clave(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if profesor:
         user_id = update.effective_user.id
-        usuarios_logueados.add(update.effective_user.id)
-        context.user_data.clear()
+        usuarios_logueados.add(user_id)
+
+        # Guardar datos útiles
+        context.user_data["usuario"] = profesor["usuario"]
+        context.user_data["nombre"] = profesor["nombre"]
+        context.user_data["es_superadmin"] = profesor["usuario"] == "superadmin"
 
         await update.message.reply_text(
             f"🔓 Bienvenido, {profesor['nombre']}!", 
@@ -253,8 +256,9 @@ async def recibir_clave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
         return ConversationHandler.END
     else:
-        await update.message.reply_text("❌ Credenciales incorrectas. Intenta nuevamente:")
-        return LOGIN_CLAVE
+        context.user_data.pop("usuario", None)  # Limpiar el usuario
+        await update.message.reply_text("❌ Credenciales incorrectas. Vuelve a introducir tu usuario con /login.")
+        return ConversationHandler.END
 
 # ---------- CANCELAR OPERACIÓN ----------
 
@@ -270,8 +274,18 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Borrar el mensaje con el botón
     await query.message.delete()
 
-    # Limpiar los datos del usuario
+    # Preservar datos importantes
+    usuario = context.user_data.get("usuario")
+    nombre = context.user_data.get("nombre")
+    es_superadmin = context.user_data.get("es_superadmin")
+
+    # Limpiar solo datos temporales
     context.user_data.clear()
+
+    # Restaurar los datos importantes
+    context.user_data["usuario"] = usuario
+    context.user_data["nombre"] = nombre
+    context.user_data["es_superadmin"] = es_superadmin
 
     # Enviar mensaje de cancelación
     await context.bot.send_message(
@@ -284,6 +298,7 @@ async def cancelar_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 # ---------- FUNCIÓN CANCELAR CREACIÓN DE OPTATIVA ----------
+
 async def cancelar_creacion_optativa_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -514,6 +529,10 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return await recibir_nombre_eliminar(update, context)
         elif estado == "esperando_asignar":
             return await recibir_asignar(update, context)
+        elif estado == "esperando_agregar_profesores":
+            return await recibir_agregar_profesores(update, context)
+        elif estado == "esperando_eliminar_profesores":
+            return await recibir_eliminar_profesores(update, context)
 
         # ---------- PROFESOR EN MENÚ ----------
         if texto == "👥 Ver estudiantes":
@@ -563,6 +582,31 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
             usuarios_logueados.discard(user_id)
             context.user_data.clear()
             await update.message.reply_text("👋 Sesión cerrada.", reply_markup=ReplyKeyboardRemove())
+
+        elif texto == "👨‍🏫 Ver profesores":
+            return await ver_profesores(update, context)
+
+        elif texto == "➕ Agregar profesores":
+            if context.user_data.get("usuario") != "superadmin":
+                await update.message.reply_text("❌ Solo el superadmin puede agregar profesores.")
+                return
+            await update.message.reply_text(
+                "📨 Envía los profesores en el formato:\n\n`usuario clave Nombre Apellido`",
+                parse_mode="Markdown",
+                reply_markup=cancelar_inline
+            )
+            context.user_data["estado"] = "esperando_agregar_profesores"
+
+        elif texto == "❌ Eliminar profesores":
+            if context.user_data.get("usuario") != "superadmin":
+                await update.message.reply_text("❌ Solo el superadmin puede eliminar profesores.")
+                return
+            await update.message.reply_text(
+                "🗑️ Escribe los usuarios de los profesores a eliminar, uno por línea.",
+                reply_markup=cancelar_inline
+            )
+            context.user_data["estado"] = "esperando_eliminar_profesores"
+
         return
 
     # ---------- ESTUDIANTE ----------
@@ -587,6 +631,92 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for c in cursos:
             mensaje += f"• *{c['nombre']}* — {c.get('descripcion', '')}\n"
         await update.message.reply_markdown(mensaje)
+
+# ---------- FUNCIONES DE ADMINISTRACIÓN DE PROFESORES ----------
+
+async def ver_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    profesores = cargar_profesores()
+    profesores = [p for p in profesores if p["usuario"] != "admin"]
+
+    if not profesores:
+        await update.message.reply_text("📭 No hay profesores registrados.")
+        return
+
+    mensaje = "👨‍🏫 *Lista de profesores:*\n\n"
+    for prof in profesores:
+        mensaje += f"• *{prof['nombre']}* — Usuario: `{prof['usuario']}`\n"
+    await update.message.reply_markdown(mensaje)
+
+async def recibir_agregar_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if context.user_data.get("usuario") != "superadmin":
+        await update.message.reply_text("❌ Solo el superadmin puede agregar profesores.")
+        return ConversationHandler.END
+
+    texto = update.message.text.strip()
+    lineas = texto.split("\n")
+    profesores = cargar_profesores()
+    nuevos = 0
+    duplicados = []
+
+    for linea in lineas:
+        partes = linea.strip().split()
+        if len(partes) < 3:
+            continue
+        usuario = partes[0]
+        clave = partes[1]
+        nombre = " ".join(partes[2:])
+
+        if any(p["usuario"] == usuario for p in profesores):
+            duplicados.append(usuario)
+            continue
+
+        profesores.append({"usuario": usuario, "clave": clave, "nombre": nombre})
+        nuevos += 1
+
+    guardar_profesores(profesores)
+
+    respuesta = f"✅ {nuevos} profesor(es) agregado(s).\n"
+    if duplicados:
+        respuesta += "\n⚠️ Usuarios duplicados (no agregados):\n" + "\n".join(duplicados)
+    await update.message.reply_markdown(respuesta)
+    context.user_data.pop("estado", None)
+    return ConversationHandler.END
+
+async def recibir_eliminar_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if context.user_data.get("usuario") != "superadmin":
+        await update.message.reply_text("❌ Solo el superadmin puede eliminar profesores.")
+        return ConversationHandler.END
+
+    texto = update.message.text.strip()
+    lineas = texto.split("\n")
+    profesores = cargar_profesores()
+    eliminados = 0
+    no_encontrados = []
+
+    for usuario in lineas:
+        usuario = usuario.strip()
+        if usuario == "admin":
+            continue
+        original_len = len(profesores)
+        profesores = [p for p in profesores if p["usuario"] != usuario]
+        if len(profesores) == original_len:
+            no_encontrados.append(usuario)
+        else:
+            eliminados += 1
+
+    guardar_profesores(profesores)
+
+    respuesta = f"✅ {eliminados} profesor(es) eliminado(s).\n"
+    if no_encontrados:
+        respuesta += "\n⚠️ No encontrados:\n" + "\n".join(no_encontrados)
+    await update.message.reply_markdown(respuesta)
+    context.user_data.pop("estado", None)
+    return ConversationHandler.END
+
+def guardar_profesores(profesores):
+    with open("profesores.json", "w", encoding="utf-8") as f:
+        json.dump(profesores, f, indent=4, ensure_ascii=False)
+
 
 # ---------- MAIN ----------
 
