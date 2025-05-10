@@ -8,6 +8,7 @@ from telegram.ext import (
 )
 import json
 import os
+import subprocess
 
 
 TOKEN = '8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0'  # Reemplaza con tu token real
@@ -717,6 +718,47 @@ def guardar_profesores(profesores):
     with open("profesores.json", "w", encoding="utf-8") as f:
         json.dump(profesores, f, indent=4, ensure_ascii=False)
 
+# ---------- CONSULTAS DE ESTUDIANTES ----------
+
+async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    texto = update.message.text.strip().lower()
+    profesores = cargar_profesores()
+
+    # Buscar si corresponde a un profesor
+    for prof in profesores:
+        if prof["nombre"].lower() == texto:
+            usuario = prof["usuario"]
+            optativas = [opt for opt in cargar_optativas() if opt["profesor"] == prof["nombre"]]
+
+            mensaje = f"👨‍🏫 *Usuario:* `{usuario}`\n📚 *Optativas que imparte:*"
+            if optativas:
+                for opt in optativas:
+                    mensaje += f"\n• *{opt['nombre']}* - {opt['descripcion']}"
+            else:
+                mensaje += "\n(No imparte ninguna optativa)"
+            await update.message.reply_markdown(mensaje)
+            return
+
+    # Si no es profesor, buscar por modelo vectorial
+    resultado = subprocess.run(
+        ["python", "modelo_vectorial.py", texto],
+        capture_output=True,
+        text=True
+    )
+
+    try:
+        optativas = json.loads(resultado.stdout)
+        if not optativas:
+            await update.message.reply_text("🔍 No se encontraron optativas relacionadas.")
+            return
+
+        mensaje = "🔍 *Resultados más relevantes:*\n\n"
+        for opt in optativas:
+            mensaje += f"• *{opt['nombre']}* (Prof: {opt['profesor']})\n  _{opt['descripcion']}_\n\n"
+        await update.message.reply_markdown(mensaje)
+    except Exception as e:
+        await update.message.reply_text("❌ Error procesando la consulta.")
+        print("Error:", e)
 
 # ---------- MAIN ----------
 
@@ -751,7 +793,7 @@ if __name__ == "__main__":
         fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^cancelar$")]
     )
 
-
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, consulta_estudiante))
     app.add_handler(MessageHandler(filters.Regex("^📚 Ver optativas$"), ver_optativas))
     app.add_handler(eliminar_optativas_handler)
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
