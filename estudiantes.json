@@ -1,1 +1,17 @@
-[]
+[
+    {
+        "nombre": "Laura Martir Beltrán",
+        "grupo": "C311",
+        "optativa": "Big Data"
+    },
+    {
+        "nombre": "Adrián Hernández Castellanos",
+        "grupo": "C312",
+        "optativa": "Big Data"
+    },
+    {
+        "nombre": "Random 1 XD",
+        "grupo": "C311",
+        "optativa": ""
+    }
+]

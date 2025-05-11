@@ -610,6 +610,8 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         return
 
+    return await consulta_estudiante(update, context)
+
     # ---------- ESTUDIANTE ----------
     optativas = cargar_optativas()
     coincidencias_opt = [o for o in optativas if o["nombre"].lower() == texto.lower()]
@@ -740,8 +742,15 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
             return
 
     # Si no es profesor, buscar por modelo vectorial
+    
+    ruta_script = os.path.join(os.path.dirname(__file__), "search_engine.py")
+
+    if not os.path.exists(ruta_script):
+        print("❌ Script no encontrado en:", ruta_script)
+
+
     resultado = subprocess.run(
-        ["python", "modelo_vectorial.py", texto],
+        ["python", ruta_script, texto],
         capture_output=True,
         text=True
     )
@@ -793,7 +802,6 @@ if __name__ == "__main__":
         fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^cancelar$")]
     )
 
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, consulta_estudiante))
     app.add_handler(MessageHandler(filters.Regex("^📚 Ver optativas$"), ver_optativas))
     app.add_handler(eliminar_optativas_handler)
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
