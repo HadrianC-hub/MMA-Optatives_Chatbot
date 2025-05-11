@@ -1,6 +1,7 @@
 # region Imports
 
 import json
+import argparse
 import os
 import subprocess
 from telegram import (
@@ -15,7 +16,6 @@ from telegram.ext import (
 # end region
 # region Constantes
 
-TOKEN = '8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0'    # Token del bot generado con BotFather
 usuarios_logueados = set()
 LOGIN_USUARIO, LOGIN_CLAVE, ESPERAR_ESTUDIANTES, ESPERAR_NOMBRE_ELIMINAR, ESPERAR_ASIGNAR = range(5)
 ESTUDIANTES_FILE = "data/estudiantes.json"
@@ -782,8 +782,13 @@ eliminar_optativas_handler = ConversationHandler(
 
 if __name__ == "__main__":
 
+    # Obteniendo TOKEN del bot
+    parser = argparse.ArgumentParser(description="Iniciar el bot de optativas")
+    parser.add_argument("token", help="Token del bot de Telegram")
+    args = parser.parse_args()
+
     # Construcción de la app mediante el token
-    app = ApplicationBuilder().token(TOKEN).build()
+    app = ApplicationBuilder().token(args.token).build()
 
     # Agregando handlers
     app.add_handler(MessageHandler(filters.Regex("^📚 Ver optativas$"), ver_optativas))
