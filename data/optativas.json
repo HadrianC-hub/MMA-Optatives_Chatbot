@@ -16,5 +16,11 @@
         "profesor": "Sancocho",
         "descripcion": "Sisisisis",
         "plazas": 2
+    },
+    {
+        "nombre": "Candela Universal",
+        "profesor": "Juan Pablo",
+        "descripcion": "La mejor optativa",
+        "plazas": -1
     }
 ]

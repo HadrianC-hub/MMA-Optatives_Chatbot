@@ -4,7 +4,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 def cargar_optativas():
-    with open("optativas.json", "r", encoding="utf-8") as f:
+    with open("data/optativas.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 def construir_corpus(optativas):
