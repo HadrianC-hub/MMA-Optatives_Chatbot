@@ -1,21 +1,15 @@
 [
     {
-        "nombre": "Big Data",
-        "profesor": "El profe 1",
-        "descripcion": "Esta es la optativa 1 XD Candela SISISI",
-        "plazas": 5
-    },
-    {
         "nombre": "Medium Data",
         "profesor": "Arturita",
         "descripcion": "Esta es la optativa 2, \u00f1e",
-        "plazas": 3
+        "plazas": 1
     },
     {
         "nombre": "Small Data",
         "profesor": "Sancocho",
         "descripcion": "Sisisisis",
-        "plazas": 2
+        "plazas": 0
     },
     {
         "nombre": "Candela Universal",

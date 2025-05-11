@@ -283,10 +283,12 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
 
     if texto == "TODO":
         guardar_optativas([])
+
         estudiantes = cargar_estudiantes()
         for est in estudiantes:
             est["optativa"] = ""
         guardar_estudiantes(estudiantes)
+
         await update.message.reply_text("🗑️ Todas las optativas han sido eliminadas y los estudiantes desasignados.")
         return ConversationHandler.END
 
@@ -302,6 +304,14 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
 
     guardar_optativas(optativas)
 
+    # Desasignar estudiantes que tenían alguna optativa eliminada
+    if eliminadas:
+        estudiantes = cargar_estudiantes()
+        for est in estudiantes:
+            if est["optativa"] in eliminadas:
+                est["optativa"] = ""
+        guardar_estudiantes(estudiantes)
+
     mensaje = ""
     if eliminadas:
         mensaje += "✅ Optativas eliminadas:\n" + "\n".join(f"• {n}" for n in eliminadas) + "\n"
@@ -313,6 +323,7 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
 
     await update.message.reply_text(mensaje, reply_markup=menu_profesor)
     return ConversationHandler.END
+
 
 # ---------- VISUALIZACIÓN DE OPTATIVAS ----------
 
@@ -473,56 +484,58 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     asignados = 0
     errores = []
 
-    # Cargar las optativas desde el archivo
-    optativos = cargar_optativas()
-
+    optativas = cargar_optativas()
     bloque_actual = []
-    for linea in lineas + [""]:  # Añadimos línea vacía para procesar el último bloque
+
+    for linea in lineas + [""]:
         if linea.strip() == "":
             continue
+
         partes = linea.strip().split()
-        # Si la línea tiene solo una o dos palabras, asumimos que es una optativa
         if len(partes) <= 3:
             nombre_optativa = " ".join(partes)
-            optativa = next((o for o in optativos if o["nombre"].lower() == nombre_optativa.lower()), None)
+            optativa = next((o for o in optativas if o["nombre"].lower() == nombre_optativa.lower()), None)
 
             if not optativa:
                 errores.append(f"❌ Optativa no encontrada: {nombre_optativa}")
                 bloque_actual = []
                 continue
 
-            ya_asignados = [e for e in estudiantes if e["optativa"] == optativa["nombre"]]
-            plazas_disponibles = optativa["plazas"] - len(ya_asignados)
-
             for est_linea in bloque_actual:
                 est_partes = est_linea.strip().split()
                 if len(est_partes) < 4:
                     errores.append(f"❌ Formato inválido: {est_linea}")
                     continue
+
                 nombre = " ".join(est_partes[:-1])
                 grupo = est_partes[-1]
 
-                if plazas_disponibles <= 0:
-                    errores.append(f"🚫 Sin plazas: {nombre} → {optativa['nombre']}")
-                    continue
+                # Comprobar plazas disponibles
+                if optativa["plazas"] != -1:
+                    asignados_actuales = sum(1 for e in estudiantes if e["optativa"] == optativa["nombre"])
+                    if asignados_actuales > optativa["plazas"]:
+                        errores.append(f"🚫 Sin plazas: {nombre} → {optativa['nombre']}")
+                        continue
 
                 encontrado = False
                 for e in estudiantes:
                     if e["nombre"] == nombre and e["grupo"] == grupo:
                         e["optativa"] = optativa["nombre"]
                         asignados += 1
-                        plazas_disponibles -= 1
+                        if optativa["plazas"] != -1:
+                            optativa["plazas"] -= 1  # Resta una plaza si no es ilimitada
                         encontrado = True
                         break
 
                 if not encontrado:
                     errores.append(f"❌ Estudiante no encontrado: {nombre} ({grupo})")
 
-            bloque_actual = []  # Reiniciar el bloque tras procesar una optativa
+            bloque_actual = []
         else:
             bloque_actual.append(linea)
 
     guardar_estudiantes(estudiantes)
+    guardar_optativas(optativas)
 
     respuesta = f"✅ {asignados} estudiante(s) asignado(s).\n"
     if errores:
