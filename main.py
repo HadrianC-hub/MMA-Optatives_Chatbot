@@ -83,8 +83,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     optativos = cargar_optativas()  # Cargar las optativas desde el archivo
     texto = "📚 *Cursos optativos disponibles:*\n\n"
     for curso in optativos:
-        plazas = curso.get('plazas', 'No disponible')  # Usar valor por defecto si no existe 'plazas'
-        texto += f"• *{curso['nombre']}* (Prof: {curso['profesor']}, Plazas: {plazas})\n"
+        plazas = curso.get('plazas', 'No disponible')
+        plazas_str = "ilimitadas" if plazas == -1 else plazas
+        texto += f"• *{curso['nombre']}* (Prof: {curso['profesor']}, Plazas: {plazas_str})\n"
     texto += "\nSi eres profesor, usa /login"
     await update.message.reply_markdown(texto)
 
@@ -349,61 +350,6 @@ async def ver_optativas(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # end region
 # region Funciones de profesor
 
-async def manejar_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    if user_id not in usuarios_logueados:
-        return ConversationHandler.END  # <-- Muy importante, no solo "return"
-
-    texto = update.message.text
-
-    if texto == "👥 Ver estudiantes":
-        estudiantes = cargar_estudiantes()
-        if not estudiantes:
-            await update.message.reply_text("📂 Lista vacía.")
-            return
-
-        grupos = {}
-        for est in estudiantes:
-            grupo = est["grupo"]
-            grupos.setdefault(grupo, []).append(est)
-
-        respuesta = "👥 *Estudiantes por grupo:*\n\n"
-        for grupo in sorted(grupos.keys()):
-            respuesta += f"*Grupo {grupo}:*\n"
-            for est in grupos[grupo]:
-                opt = est["optativa"] if est["optativa"] else "Ninguna"
-                respuesta += f"• {est['nombre']} - Optativa: {opt}\n"
-            respuesta += "\n"
-        await update.message.reply_markdown(respuesta)
-
-    elif texto == "➕ Agregar estudiantes":
-        await update.message.reply_text(
-            "📨 Envía los estudiantes en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo`\nUno por línea.",
-            parse_mode="Markdown",
-            reply_markup=cancelar_inline
-        )
-        return ESPERAR_ESTUDIANTES
-
-    elif texto == "❌ Eliminar estudiante":
-        await update.message.reply_text(
-            "✂️ Escribe los estudiantes a eliminar en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo`\nUno por línea.:",
-            reply_markup=cancelar_inline
-        )
-        return ESPERAR_NOMBRE_ELIMINAR
-
-    elif texto == "📌 Asignar optativa":
-        await update.message.reply_text(
-            "📥 Envía los estudiantes a asignar en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo\nNombre2 Apellido3 Apellido4 Grupo2\nOptativa`\n",
-            parse_mode="Markdown",
-            reply_markup=cancelar_inline
-        )
-
-        return ESPERAR_ASIGNAR
-
-    elif texto == "🔓 Cerrar sesión":
-        usuarios_logueados.discard(user_id)
-        await update.message.reply_text("👋 Sesión cerrada.", reply_markup=ReplyKeyboardRemove())
-
 async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text
     lineas = texto.strip().split("\n")
@@ -553,7 +499,6 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.pop("estado", None)
     return ConversationHandler.END
 
-
 async def ver_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
     profesores = cargar_profesores()
     profesores = [p for p in profesores if p["usuario"] != "admin"]
@@ -690,7 +635,7 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         elif texto == "📌 Asignar optativa":
             await update.message.reply_text(
-                "📥 Envía los estudiantes a asignar en el formato:\n\n`Nombre Apellido Grupo\n...\nOptativa`\n",
+                "📥 Envía los estudiantes a asignar en el formato:\n\n`Nombre Apellido1 Apellido2 Grupo\nNombre Apellido1 Apellido2 Grupo\n...\n-Optativa`\n",
                 parse_mode="Markdown",
                 reply_markup=cancelar_inline
             )

@@ -1,11 +1,19 @@
 import json
 import sys
+import io
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
+# Forzar UTF-8 en stdout
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 def cargar_optativas():
-    with open("data/optativas.json", "r", encoding="utf-8") as f:
-        return json.load(f)
+    try:
+        with open("data/optativas.json", "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(json.dumps({"error": f"No se pudo cargar optativas: {str(e)}"}))
+        sys.exit(1)
 
 def construir_corpus(optativas):
     corpus = []
@@ -28,5 +36,9 @@ def buscar_optativas(query):
 
 if __name__ == "__main__":
     consulta = " ".join(sys.argv[1:])
+    if not consulta.strip():
+        print(json.dumps({"error": "Consulta vacía."}))
+        sys.exit(1)
+
     resultados = buscar_optativas(consulta)
     print(json.dumps(resultados, ensure_ascii=False, indent=2))
