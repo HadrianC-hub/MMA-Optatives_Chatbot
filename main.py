@@ -481,26 +481,29 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lineas = texto.split("\n")
 
     estudiantes = cargar_estudiantes()
+    optativas = cargar_optativas()
     asignados = 0
     errores = []
 
-    optativas = cargar_optativas()
     bloque_actual = []
+    optativa_actual = None
 
-    for linea in lineas + [""]:
-        if linea.strip() == "":
+    for linea in lineas + [""]:  # Agregamos línea vacía para procesar el último bloque
+        linea = linea.strip()
+        if not linea:
             continue
 
-        partes = linea.strip().split()
-        if len(partes) <= 3:
-            nombre_optativa = " ".join(partes)
+        if linea.startswith("-"):
+            nombre_optativa = linea[1:].strip()
             optativa = next((o for o in optativas if o["nombre"].lower() == nombre_optativa.lower()), None)
 
             if not optativa:
                 errores.append(f"❌ Optativa no encontrada: {nombre_optativa}")
                 bloque_actual = []
+                optativa_actual = None
                 continue
 
+            # Procesar estudiantes del bloque anterior
             for est_linea in bloque_actual:
                 est_partes = est_linea.strip().split()
                 if len(est_partes) < 4:
@@ -510,27 +513,33 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 nombre = " ".join(est_partes[:-1])
                 grupo = est_partes[-1]
 
-                # Comprobar plazas disponibles
+                estudiante = next((e for e in estudiantes if e["nombre"] == nombre and e["grupo"] == grupo), None)
+                if not estudiante:
+                    errores.append(f"❌ Estudiante no encontrado: {nombre} ({grupo})")
+                    continue
+
+                if estudiante["optativa"] == optativa["nombre"]:
+                    continue  # Ya asignado a esta optativa
+
+                # Verificar plazas disponibles
                 if optativa["plazas"] != -1:
                     asignados_actuales = sum(1 for e in estudiantes if e["optativa"] == optativa["nombre"])
-                    if asignados_actuales > optativa["plazas"]:
+                    if asignados_actuales >= optativa["plazas"]:
                         errores.append(f"🚫 Sin plazas: {nombre} → {optativa['nombre']}")
                         continue
+                    optativa["plazas"] -= 1
 
-                encontrado = False
-                for e in estudiantes:
-                    if e["nombre"] == nombre and e["grupo"] == grupo:
-                        e["optativa"] = optativa["nombre"]
-                        asignados += 1
-                        if optativa["plazas"] != -1:
-                            optativa["plazas"] -= 1  # Resta una plaza si no es ilimitada
-                        encontrado = True
-                        break
+                # Liberar plaza de optativa anterior si corresponde
+                if estudiante["optativa"]:
+                    opt_anterior = next((o for o in optativas if o["nombre"] == estudiante["optativa"]), None)
+                    if opt_anterior and opt_anterior["plazas"] != -1:
+                        opt_anterior["plazas"] += 1
 
-                if not encontrado:
-                    errores.append(f"❌ Estudiante no encontrado: {nombre} ({grupo})")
+                estudiante["optativa"] = optativa["nombre"]
+                asignados += 1
 
             bloque_actual = []
+            optativa_actual = optativa
         else:
             bloque_actual.append(linea)
 
@@ -543,6 +552,7 @@ async def recibir_asignar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(respuesta)
     context.user_data.pop("estado", None)
     return ConversationHandler.END
+
 
 async def ver_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
     profesores = cargar_profesores()
