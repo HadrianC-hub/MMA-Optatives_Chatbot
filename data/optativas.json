@@ -1,38 +1,47 @@
 [
-  {
-    "nombre": "Medium Data",
-    "profesor": "Arturita",
-    "descripcion": "Esta es la optativa 2, ñe",
-    "plazas": 2
-  },
-  {
-    "nombre": "Big Data",
-    "profesor": "Juancito Pérez",
-    "descripcion": "Análisis de datos masivos usando herramientas modernas como Hadoop, Spark y bases NoSQL.",
-    "plazas": 10
-  },
-  {
-    "nombre": "Desarrollo Web Avanzado",
-    "profesor": "Luna Martínez",
-    "descripcion": "HTML, CSS, JavaScript, frameworks modernos y arquitectura de aplicaciones web escalables.",
-    "plazas": -1
-  },
-  {
-    "nombre": "Ciberseguridad",
-    "profesor": "El Ñeñe",
-    "descripcion": "Aprende a proteger sistemas informáticos frente a ataques y vulnerabilidades.",
-    "plazas": 5
-  },
-  {
-    "nombre": "Programación Competitiva",
-    "profesor": "Valentín Sánchez",
-    "descripcion": "¡Entrena para las olimpiadas de informática! Algoritmos, estructuras de datos y optimización",
-    "plazas": 3
-  },
-  {
-    "nombre": "Diseño de Interfaces",
-    "profesor": "Ana López",
-    "descripcion": "Enfocado en UX/UI, prototipado rápido y accesibilidad para todos los usuarios.",
-    "plazas": -1
-  }
+    {
+        "nombre": "Desarrollo Web Avanzado",
+        "profesor": "Luna Mart\u00ednez",
+        "descripcion": "HTML, CSS, JavaScript, frameworks modernos y arquitectura de aplicaciones web escalables.",
+        "plazas": -1,
+        "relacionadas": []
+    },
+    {
+        "nombre": "Ciberseguridad",
+        "profesor": "El \u00d1e\u00f1e",
+        "descripcion": "Aprende a proteger sistemas inform\u00e1ticos frente a ataques y vulnerabilidades.",
+        "plazas": 4,
+        "relacionadas": []
+    },
+    {
+        "nombre": "Programaci\u00f3n Competitiva",
+        "profesor": "Valent\u00edn S\u00e1nchez",
+        "descripcion": "\u00a1Entrena para las olimpiadas de inform\u00e1tica! Algoritmos, estructuras de datos y optimizaci\u00f3n",
+        "plazas": 3,
+        "relacionadas": []
+    },
+    {
+        "nombre": "Dise\u00f1o de Interfaces",
+        "profesor": "Ana L\u00f3pez",
+        "descripcion": "Enfocado en UX/UI, prototipado r\u00e1pido y accesibilidad para todos los usuarios.",
+        "plazas": -1,
+        "relacionadas": []
+    },
+    {
+        "nombre": "Small Data",
+        "profesor": "Fernando",
+        "descripcion": "Es como big data pero peque\u00f1a",
+        "plazas": 4,
+        "relacionadas": []
+    },
+    {
+        "nombre": "Optativa nueva",
+        "profesor": "Juancito",
+        "descripcion": "Esta es una optativa nueva 123",
+        "plazas": 3,
+        "relacionadas": [
+            "Literatura cl\u00e1sica",
+            "Taxonom\u00eda"
+        ]
+    }
 ]

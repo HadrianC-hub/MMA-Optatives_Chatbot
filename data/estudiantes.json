@@ -1,292 +1,292 @@
 [
-  {
-    "nombre": "Laura Martir Beltrán",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Adrián Hernández Castellanos",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Carlos Pérez Gómez",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "María Rodríguez López",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Javier Ruiz Fernández",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Andrea Sánchez Díaz",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Juan Torres Morales",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Lucía Navarro Jiménez",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Manuel Castro Vargas",
-    "grupo": "C311",
-    "optativa": "Big Data"
-  },
-  {
-    "nombre": "Paula Romero Suárez",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Alejandro García Ramos",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Carmen León Soto",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "David Molina Peña",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Sara Herrera Cano",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Daniel Aguilar Ríos",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Isabel Lozano Lara",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Mario Reyes Ortiz",
-    "grupo": "C311",
-    "optativa": "Web Avanzado"
-  },
-  {
-    "nombre": "Elena Vargas Cruz",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Hugo Ramos Vidal",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Claudia Muñoz Navas",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Iván Romero Ruiz",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Nuria Delgado Cortés",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Óscar Peña Domínguez",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Teresa Bravo Castillo",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Pedro Ramos Aguilera",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Raquel Campos Herrera",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Miguel Álvarez Guzmán",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Angela Ramos Fernández",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Francisco Morales Díaz",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Beatriz Varela Cano",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Cristina Ortega Romero",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Jesús Delgado Pérez",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Silvia Gómez Espinosa",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Luis Ramos Paredes",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Marina Herrera Salas",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Víctor Cano González",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Eva Muñoz Sánchez",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Tomás Varela Jiménez",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Alba Rodríguez Flores",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Sergio Navarro Romero",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Julia Romero Santana",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Rubén Herrera Fuentes",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Gloria Paredes Torres",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Pablo Molina Aguilar",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Nerea Sánchez León",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Iván Díaz Morales",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Elisa Vargas Romero",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Óscar Ramos Peña",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Patricia Soto Lozano",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Antonio Reyes Ortega",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "María José Díaz Blanco",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Eduardo Pérez Núñez",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Rocío Molina Herrera",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Cristian Salas Navarro",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Irene Lozano Aguilar",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Álvaro Romero Rivas",
-    "grupo": "C312",
-    "optativa": ""
-  },
-  {
-    "nombre": "Eva María Fernández",
-    "grupo": "C311",
-    "optativa": ""
-  },
-  {
-    "nombre": "Gabriel Herrera Ruiz",
-    "grupo": "C312",
-    "optativa": ""
-  }
+    {
+        "nombre": "Laura Martir Beltrán",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Adrián Hernández Castellanos",
+        "grupo": "C312",
+        "optativa": "Ciberseguridad"
+    },
+    {
+        "nombre": "Carlos Pérez Gómez",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "María Rodríguez López",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Javier Ruiz Fernández",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Andrea Sánchez Díaz",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Juan Torres Morales",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Lucía Navarro Jiménez",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Manuel Castro Vargas",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Paula Romero Suárez",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Alejandro García Ramos",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Carmen León Soto",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "David Molina Peña",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Sara Herrera Cano",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Daniel Aguilar Ríos",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Isabel Lozano Lara",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Mario Reyes Ortiz",
+        "grupo": "C311",
+        "optativa": "Web Avanzado"
+    },
+    {
+        "nombre": "Elena Vargas Cruz",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Hugo Ramos Vidal",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Claudia Muñoz Navas",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Iván Romero Ruiz",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Nuria Delgado Cortés",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Óscar Peña Domínguez",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Teresa Bravo Castillo",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Pedro Ramos Aguilera",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Raquel Campos Herrera",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Miguel Álvarez Guzmán",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Angela Ramos Fernández",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Francisco Morales Díaz",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Beatriz Varela Cano",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Cristina Ortega Romero",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Jesús Delgado Pérez",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Silvia Gómez Espinosa",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Luis Ramos Paredes",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Marina Herrera Salas",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Víctor Cano González",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Eva Muñoz Sánchez",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Tomás Varela Jiménez",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Alba Rodríguez Flores",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Sergio Navarro Romero",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Julia Romero Santana",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Rubén Herrera Fuentes",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Gloria Paredes Torres",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Pablo Molina Aguilar",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Nerea Sánchez León",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Iván Díaz Morales",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Elisa Vargas Romero",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Óscar Ramos Peña",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Patricia Soto Lozano",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Antonio Reyes Ortega",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "María José Díaz Blanco",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Eduardo Pérez Núñez",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Rocío Molina Herrera",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Cristian Salas Navarro",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Irene Lozano Aguilar",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Álvaro Romero Rivas",
+        "grupo": "C312",
+        "optativa": ""
+    },
+    {
+        "nombre": "Eva María Fernández",
+        "grupo": "C311",
+        "optativa": ""
+    },
+    {
+        "nombre": "Gabriel Herrera Ruiz",
+        "grupo": "C312",
+        "optativa": ""
+    }
 ]

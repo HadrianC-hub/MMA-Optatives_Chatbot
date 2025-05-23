@@ -13,5 +13,10 @@
         "usuario": "jp",
         "clave": "1234",
         "nombre": "Juan Pablo"
+    },
+    {
+        "usuario": "fernando123",
+        "clave": "f123",
+        "nombre": "Fernando Rodríguez"
     }
 ]

@@ -21,6 +21,7 @@ LOGIN_USUARIO, LOGIN_CLAVE, ESPERAR_ESTUDIANTES, ESPERAR_NOMBRE_ELIMINAR, ESPERA
 ESTUDIANTES_FILE = "data/estudiantes.json"
 OPTATIVAS_FILE = "data/optativas.json"
 PROFESORES_FILE = "data/profesores.json"
+RESEÑAS_FILE = "data/reseñas.json"
 
 # ---------- TECLADO ESPECIAL PARA PROFESORES ----------
 menu_profesor = ReplyKeyboardMarkup([
@@ -38,6 +39,11 @@ cancelar_inline = InlineKeyboardMarkup([
 cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar Creación de Optativa", callback_data="cancelar_creacion_optativa")]
 ])
+
+cancelar_reseña_inline = InlineKeyboardMarkup([
+    [InlineKeyboardButton("❎ Cancelar reseña", callback_data="cancelar_resena")]
+])
+
 
 # end region
 # region Carga de datos
@@ -61,6 +67,12 @@ def cargar_profesores():
     except FileNotFoundError:
         return []
 
+def cargar_resenas():
+    if not os.path.exists(RESEÑAS_FILE) or os.stat(RESEÑAS_FILE).st_size == 0:
+        return []
+    with open(RESEÑAS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
 # end region
 # region Salva de datos
 
@@ -75,6 +87,10 @@ def guardar_optativas(optativas):
 def guardar_profesores(profesores):
     with open(PROFESORES_FILE, "w", encoding="utf-8") as f:
         json.dump(profesores, f, indent=4, ensure_ascii=False)
+
+def guardar_resenas(resenas):
+    with open(RESEÑAS_FILE, "w", encoding="utf-8") as f:
+        json.dump(resenas, f, indent=4, ensure_ascii=False)
 
 # end region
 # region Comandos principales
@@ -130,6 +146,12 @@ def validar_credenciales(usuario, clave):
         if prof["usuario"] == usuario and prof["clave"] == clave:
             return prof  # Devuelve el objeto completo
     return None
+
+def escapar_markdown(texto):
+    caracteres_a_escapar = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for c in caracteres_a_escapar:
+        texto = texto.replace(c, f"\\{c}")
+    return texto
 
 # end region
 # region Funciones de cancelación
@@ -192,13 +214,136 @@ async def cancelar_creacion_optativa_callback(update: Update, context: ContextTy
 
     return ConversationHandler.END  # Terminar la conversación de creación de optativa
 
+# ---------- FUNCIÓN CANCELAR RESEÑA ----------
+
+async def cancelar_resena_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.message.delete()
+    await context.bot.send_message(chat_id=query.message.chat_id, text="❎ Reseña cancelada.")
+    context.user_data.pop("resena", None)
+    return ConversationHandler.END
+
+
+# end region
+# region Manejo de reseñas
+
+RESEÑA_IDENTIFICACION, RESEÑA_COMENTARIO, RESEÑA_PUNTUACION = range(10, 13)
+
+async def iniciar_resena(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📝 Para dejar una reseña, escribe tu nombre completo y grupo:\n"
+        "`Nombre Apellido1 Apellido2 Grupo`",
+        parse_mode="Markdown",
+        reply_markup=cancelar_reseña_inline
+    )
+    return RESEÑA_IDENTIFICACION
+
+async def recibir_identificacion_resena(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    entrada = update.message.text.strip()
+    partes = entrada.split()
+    if len(partes) < 4:
+        await update.message.reply_text("⚠️ Formato inválido. Intenta de nuevo.")
+        return RESEÑA_IDENTIFICACION
+
+    nombre = " ".join(partes[:-1])
+    grupo = partes[-1]
+    estudiante = next((e for e in cargar_estudiantes() if e["nombre"] == nombre and e["grupo"] == grupo), None)
+
+    if not estudiante:
+        await update.message.reply_text("❌ Estudiante no encontrado.")
+        return ConversationHandler.END
+
+    if not estudiante["optativa"]:
+        await update.message.reply_text("⚠️ No tienes ninguna optativa asignada.")
+        return ConversationHandler.END
+
+    context.user_data["resena"] = {
+        "nombre": nombre,
+        "grupo": grupo,
+        "usuario_telegram": update.effective_user.username or "sin_username",
+        "optativa": estudiante["optativa"]
+    }
+
+    await update.message.reply_text("🗨️ Escribe tu reseña:")
+    return RESEÑA_COMENTARIO
+
+async def recibir_comentario_resena(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data["resena"]["comentario"] = update.message.text.strip()
+    await update.message.reply_text("⭐ Del 1 al 5, ¿qué puntuación le das a la optativa?")
+    return RESEÑA_PUNTUACION
+
+async def recibir_puntuacion_resena(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        puntuacion = int(update.message.text.strip())
+        if not 1 <= puntuacion <= 5:
+            raise ValueError
+    except ValueError:
+        await update.message.reply_text("⚠️ Debes ingresar un número del 1 al 5.")
+        return RESEÑA_PUNTUACION
+
+    context.user_data["resena"]["puntuacion"] = puntuacion
+    resenas = cargar_resenas()
+    resenas.append(context.user_data["resena"])
+    guardar_resenas(resenas)
+
+    await update.message.reply_text("✅ ¡Gracias por tu reseña!")
+    context.user_data.pop("resena", None)
+    return ConversationHandler.END
+
+
+# end region
+# region Visualización de reseñas
+
+VER_RESEÑA_NOMBRE = range(20, 21)
+
+async def iniciar_ver_resenas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "📚 Escribe el *nombre exacto* de la optativa que quieres consultar:",
+        parse_mode="Markdown",
+        reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton("❎ Cancelar", callback_data="cancelar_verresena")]])
+    )
+    return VER_RESEÑA_NOMBRE
+
+async def mostrar_resenas_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    nombre_opt = update.message.text.strip()
+    optativas = cargar_optativas()
+    reseñas = cargar_resenas()
+
+    optativa = next((o for o in optativas if o["nombre"].lower() == nombre_opt.lower()), None)
+
+    if not optativa:
+        await update.message.reply_text("❌ No se encontró la optativa.")
+        return ConversationHandler.END
+
+    reseñas_opt = [r for r in reseñas if r["optativa"].lower() == nombre_opt.lower()]
+    mensaje = f"📘 *{optativa['nombre']}* — Profesor: {optativa['profesor']}\n\n"
+
+    if not reseñas_opt:
+        mensaje += "No hay reseñas aún."
+    else:
+        for r in reseñas_opt:
+            usuario = escapar_markdown(r["usuario_telegram"])
+            comentario = escapar_markdown(r["comentario"])
+            mensaje += f"⭐ {r['puntuacion']}/5 — @{usuario}\n_{comentario}_\n\n"
+
+    await update.message.reply_markdown(mensaje)
+    return ConversationHandler.END
+
+async def cancelar_verresena_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    await query.message.delete()
+    await context.bot.send_message(chat_id=query.message.chat_id, text="❎ Consulta cancelada.")
+    return ConversationHandler.END
+
 # end region
 # region Manejo de optativas
 
 # ---------- CREACIÓN DE OPTATIVAS ----------
 
 # Estados de la conversación
-CREAR_NOMBRE, CREAR_PROFESOR, CREAR_DESCRIPCION, CREAR_PLAZAS = range(4)
+CREAR_NOMBRE, CREAR_PROFESOR, CREAR_DESCRIPCION, CREAR_PLAZAS, CREAR_RELACIONADAS = range(5)
 
 # Función para iniciar la creación de optativa
 async def iniciar_crear_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -246,23 +391,51 @@ async def recibir_plazas_optativa(update: Update, context: ContextTypes.DEFAULT_
         context.user_data["optativa"]["plazas"] = plazas
     except ValueError:
         await update.message.reply_text("⚠️ Por favor, ingresa un número válido para las plazas.")
-        return CREAR_PLAZAS  # Vuelve a pedir el número de plazas si no es válido
+        return CREAR_PLAZAS
+
+    await update.message.reply_text(
+        "📘 Escribe las asignaturas relacionadas (una por línea).\n"
+        "Si no hay ninguna, escribe un punto (`.`):",
+        parse_mode="Markdown"
+    )
+    return CREAR_RELACIONADAS
+
+async def recibir_relacionadas_optativa(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    texto = update.message.text.strip()
+    if texto == ".":
+        relacionadas = []
+    else:
+        relacionadas = [line.strip() for line in texto.splitlines() if line.strip()]
+    
+    context.user_data["optativa"]["relacionadas"] = relacionadas
 
     # Guardamos la nueva optativa
     optativas = cargar_optativas()
     optativas.append(context.user_data["optativa"])
     guardar_optativas(optativas)
 
+    nombre = context.user_data["optativa"]["nombre"]
+    profesor = context.user_data["optativa"]["profesor"]
+    descripcion = context.user_data["optativa"]["descripcion"]
+    plazas = context.user_data["optativa"]["plazas"]
     texto_plazas = "Ilimitadas" if plazas == -1 else str(plazas)
 
-    await update.message.reply_text(
-        f"✅ Optativa '{context.user_data['optativa']['nombre']}' creada con éxito.\n"
-        f"Profesor: {context.user_data['optativa']['profesor']}\n"
-        f"Descripción: {context.user_data['optativa']['descripcion']}\n"
-        f"Plazas: {texto_plazas}"
+    texto_resumen = (
+        f"✅ Optativa '{nombre}' creada con éxito.\n"
+        f"👨‍🏫 Profesor: {profesor}\n"
+        f"📝 Descripción: {descripcion}\n"
+        f"👥 Plazas: {texto_plazas}\n"
     )
+
+    if relacionadas:
+        texto_resumen += "📘 Asignaturas relacionadas:\n" + "\n".join(f"• {a}" for a in relacionadas)
+    else:
+        texto_resumen += "📘 Asignaturas relacionadas: (ninguna)"
+
+    await update.message.reply_text(texto_resumen)
     context.user_data.pop("optativa", None)
     return ConversationHandler.END
+
 
 # ---------- ELIMINACIÓN DE OPTATIVAS ----------
 
@@ -703,6 +876,7 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     texto = update.message.text.strip().lower()
     profesores = cargar_profesores()
+    resenas = cargar_resenas()
 
     # Buscar si corresponde a un profesor
     for prof in profesores:
@@ -737,8 +911,32 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
 
         mensaje = "🔍 *Resultados más relevantes:*\n\n"
         for opt in optativas:
-            mensaje += f"• *{opt['nombre']}* (Prof: {opt['profesor']})\n  _{opt['descripcion']}_\n\n"
+            plazas = "Ilimitadas" if opt.get("plazas") == -1 else opt.get("plazas", "No disponible")
+            relacionadas = opt.get("relacionadas", [])
+            relacionadas_str = "\n    - " + "\n    - ".join(relacionadas) if relacionadas else "    (ninguna)"
+
+            # Filtrar reseñas para esta optativa
+            resenas_opt = [r for r in resenas if r["optativa"] == opt["nombre"]]
+            mejor = max(resenas_opt, key=lambda r: r["puntuacion"], default=None)
+            peor = min(resenas_opt, key=lambda r: r["puntuacion"], default=None)
+
+            # Formato para reseñas
+            mejor_txt = f"⭐ Mejor reseña ({mejor['puntuacion']}/5):\n  _{mejor['comentario']}_ — @{escapar_markdown(mejor['usuario_telegram'])}" if mejor else "⭐ Mejor reseña: (ninguna)"
+            peor_txt = f"😕 Peor reseña ({peor['puntuacion']}/5):\n  _{peor['comentario']}_ — @{escapar_markdown(peor['usuario_telegram'])}" if peor else "😕 Peor reseña: (ninguna)"
+
+            mensaje += (
+                f"• *{opt['nombre']}*\n"
+                f"  👨‍🏫 Profesor: {opt['profesor']}\n"
+                f"  📝 {opt.get('descripcion', 'Sin descripción')}\n"
+                f"  👥 Plazas disponibles: {plazas}\n"
+                f"  📘 Asignaturas relacionadas:\n{relacionadas_str}\n"
+                f"  {mejor_txt}\n"
+                f"  {peor_txt}\n\n"
+            )
+
         await update.message.reply_markdown(mensaje)
+
+
     except Exception as e:
         await update.message.reply_text("❌ Error procesando la consulta.")
         print("Error:", e)
@@ -765,6 +963,7 @@ crear_optativa_handler = ConversationHandler(
         CREAR_PROFESOR: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_profesor_optativa)],
         CREAR_DESCRIPCION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_descripcion_optativa)],
         CREAR_PLAZAS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_plazas_optativa)],
+        CREAR_RELACIONADAS: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_relacionadas_optativa)],
     },
     fallbacks=[CallbackQueryHandler(cancelar_creacion_optativa_callback, pattern="^cancelar_creacion_optativa$")]
 )
@@ -776,6 +975,25 @@ eliminar_optativas_handler = ConversationHandler(
     },
     fallbacks=[CallbackQueryHandler(cancelar_callback, pattern="^cancelar$")]
 )
+
+resena_handler = ConversationHandler(
+    entry_points=[CommandHandler("rev", iniciar_resena)],
+    states={
+        RESEÑA_IDENTIFICACION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_identificacion_resena)],
+        RESEÑA_COMENTARIO: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_comentario_resena)],
+        RESEÑA_PUNTUACION: [MessageHandler(filters.TEXT & ~filters.COMMAND, recibir_puntuacion_resena)],
+    },
+    fallbacks=[CallbackQueryHandler(cancelar_resena_callback, pattern="^cancelar_resena$")]
+)
+
+ver_reseñas_handler = ConversationHandler(
+    entry_points=[CommandHandler("vrev", iniciar_ver_resenas)],
+    states={
+        VER_RESEÑA_NOMBRE: [MessageHandler(filters.TEXT & ~filters.COMMAND, mostrar_resenas_optativa)]
+    },
+    fallbacks=[CallbackQueryHandler(cancelar_verresena_callback, pattern="^cancelar_verresena$")]
+)
+
 
 # end region
 # region Ejecución principal
@@ -795,6 +1013,8 @@ if __name__ == "__main__":
     app.add_handler(eliminar_optativas_handler)
     app.add_handler(CallbackQueryHandler(cancelar_callback, pattern="^cancelar$"))
     app.add_handler(crear_optativa_handler)
+    app.add_handler(resena_handler)
+    app.add_handler(ver_reseñas_handler)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))

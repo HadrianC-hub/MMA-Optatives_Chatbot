@@ -1,1 +1,2 @@
-python-telegram-bot==20.1
+python-telegram-bot==20.7
+scikit-learn==1.4.2
