@@ -1,6 +1,6 @@
 [
     {
-        "usuario": "juan",
+        "usuario": "pepe",
         "clave": "1234",
         "nombre": "Juan Perez"
     },
@@ -10,13 +10,13 @@
         "nombre": "Alicia"
     },
     {
-        "usuario": "jp",
+        "usuario": "jpau",
         "clave": "1234",
         "nombre": "Juan Pablo"
     },
     {
-        "usuario": "fernando123",
-        "clave": "f123",
+        "usuario": "fernando1234",
+        "clave": "f1234",
         "nombre": "Fernando Rodríguez"
     }
 ]

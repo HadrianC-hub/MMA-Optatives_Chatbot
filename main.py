@@ -13,6 +13,8 @@ from telegram.ext import (
     CallbackQueryHandler, ContextTypes, ConversationHandler, filters,
 )
 
+from telegram import BotCommand, Document
+
 # end region
 # region Constantes
 
@@ -91,6 +93,76 @@ def guardar_profesores(profesores):
 def guardar_resenas(resenas):
     with open(RESEÑAS_FILE, "w", encoding="utf-8") as f:
         json.dump(resenas, f, indent=4, ensure_ascii=False)
+
+# end region
+# region Validación de documentos
+
+def validar_estudiantes(data):
+    if not isinstance(data, list): return False
+    for est in data:
+        if not all(k in est for k in ("nombre", "grupo", "optativa")):
+            return False
+    return True
+
+def validar_optativas(data):
+    if not isinstance(data, list): return False
+    for opt in data:
+        if not all(k in opt for k in ("nombre", "profesor", "descripcion", "plazas", "relacionadas")):
+            return False
+    return True
+
+def validar_profesores(data):
+    if not isinstance(data, list): return False
+    for prof in data:
+        if not all(k in prof for k in ("usuario", "clave", "nombre")):
+            return False
+    return True
+
+async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    es_profesor = user_id in usuarios_logueados
+
+    if not es_profesor:
+        await update.message.reply_text("❌ Solo los profesores pueden subir archivos.")
+        return
+
+    documento: Document = update.message.document
+    nombre_archivo = documento.file_name
+
+    if nombre_archivo not in ("estudiantes.json", "optativas.json", "profesores.json"):
+        await update.message.reply_text("⚠️ El archivo debe llamarse 'estudiantes.json', 'optativas.json' o 'profesores.json'.")
+        return
+
+    archivo = await documento.get_file()
+    contenido = await archivo.download_as_bytearray()
+    try:
+        datos = json.loads(contenido.decode("utf-8"))
+    except Exception:
+        await update.message.reply_text("⚠️ El archivo no es un JSON válido.")
+        return
+
+    ruta_archivo = f"data/{nombre_archivo}"
+    es_valido = False
+    mensaje_error = ""
+
+    if nombre_archivo == "estudiantes.json":
+        es_valido = validar_estudiantes(datos)
+        mensaje_error = "Formato esperado: lista de objetos con 'nombre', 'grupo' y 'optativa'."
+    elif nombre_archivo == "optativas.json":
+        es_valido = validar_optativas(datos)
+        mensaje_error = "Formato esperado: lista de objetos con 'nombre', 'profesor', 'descripcion', 'plazas' y 'relacionadas'."
+    elif nombre_archivo == "profesores.json":
+        es_valido = validar_profesores(datos)
+        mensaje_error = "Formato esperado: lista de objetos con 'usuario', 'clave' y 'nombre'."
+
+    if not es_valido:
+        await update.message.reply_text(f"❌ El contenido de {nombre_archivo} no es válido.\n{mensaje_error}")
+        return
+
+    with open(ruta_archivo, "w", encoding="utf-8") as f:
+        json.dump(datos, f, indent=4, ensure_ascii=False)
+
+    await update.message.reply_text(f"✅ Archivo '{nombre_archivo}' reemplazado correctamente.")
 
 # end region
 # region Comandos principales
@@ -284,10 +356,36 @@ async def recibir_puntuacion_resena(update: Update, context: ContextTypes.DEFAUL
 
     context.user_data["resena"]["puntuacion"] = puntuacion
     resenas = cargar_resenas()
-    resenas.append(context.user_data["resena"])
+    nueva = context.user_data["resena"]
+
+    # Verificar si ya existía reseña para esa optativa por el mismo estudiante
+    ya_existia = any(
+        r["nombre"] == nueva["nombre"] and
+        r["grupo"] == nueva["grupo"] and
+        r["optativa"] == nueva["optativa"]
+        for r in resenas
+    )
+
+    # Eliminar la reseña antigua si existe
+    resenas = [
+        r for r in resenas
+        if not (
+            r["nombre"] == nueva["nombre"] and
+            r["grupo"] == nueva["grupo"] and
+            r["optativa"] == nueva["optativa"]
+        )
+    ]
+
+    # Añadir la nueva reseña
+    resenas.append(nueva)
     guardar_resenas(resenas)
 
-    await update.message.reply_text("✅ ¡Gracias por tu reseña!")
+    # Notificar
+    if ya_existia:
+        await update.message.reply_text("♻️ Tu reseña anterior ha sido reemplazada por la nueva.")
+    else:
+        await update.message.reply_text("✅ ¡Gracias por tu reseña!")
+
     context.user_data.pop("resena", None)
     return ConversationHandler.END
 
@@ -1008,6 +1106,13 @@ if __name__ == "__main__":
     # Construcción de la app mediante el token
     app = ApplicationBuilder().token(args.token).build()
 
+    app.bot.set_my_commands([
+        BotCommand("login", "Iniciar sesión como profesor"),
+        BotCommand("rev", "Dejar una reseña sobre tu optativa"),
+        BotCommand("vrev", "Ver reseñas de una optativa"),
+        BotCommand("start", "Ver optativas disponibles")
+    ])
+
     # Agregando handlers
     app.add_handler(MessageHandler(filters.Regex("^📚 Ver optativas$"), ver_optativas))
     app.add_handler(eliminar_optativas_handler)
@@ -1018,6 +1123,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
+    app.add_handler(MessageHandler(filters.Document.ALL, manejar_archivo))
 
     print("🤖 Bot corriendo...")
     app.run_polling()
