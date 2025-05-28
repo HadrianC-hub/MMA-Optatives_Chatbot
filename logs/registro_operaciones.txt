@@ -1,0 +1,5 @@
+[2025-05-27 20:01] Profesor 'Desconocido' ha agregado los siguientes estudiantes: Pe PE Pe (C111)
+[2025-05-27 20:06] Profesor 'alicia' ha agregado los siguientes estudiantes: L L L (C111)
+[2025-05-27 20:17] Profesor 'alicia' ha reemplazado el archivo: estudiantes.json
+[2025-05-27 20:29] Profesor 'superadmin' ha eliminado los siguientes estudiantes: 
+[2025-05-27 20:30] Profesor 'superadmin' ha eliminado los siguientes estudiantes: Juan Juan Juan (C111), L L L (C111)

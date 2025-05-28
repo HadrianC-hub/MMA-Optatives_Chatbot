@@ -10,7 +10,8 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "args": ["8024056515:AAF5hkA6X24P6ivtc2GG0nTZPUZ6xj8xPs0"]
         }
     ]
 }

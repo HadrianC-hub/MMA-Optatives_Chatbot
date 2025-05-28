@@ -12,8 +12,8 @@ from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler,
     CallbackQueryHandler, ContextTypes, ConversationHandler, filters,
 )
-
 from telegram import BotCommand, Document
+from datetime import datetime
 
 # end region
 # region Constantes
@@ -24,6 +24,7 @@ ESTUDIANTES_FILE = "data/estudiantes.json"
 OPTATIVAS_FILE = "data/optativas.json"
 PROFESORES_FILE = "data/profesores.json"
 RESEÑAS_FILE = "data/reseñas.json"
+LOG_PATH = "logs/registro_operaciones.txt"
 
 # ---------- TECLADO ESPECIAL PARA PROFESORES ----------
 menu_profesor = ReplyKeyboardMarkup([
@@ -45,6 +46,21 @@ cancelar_creacion_optativa_inline = InlineKeyboardMarkup([
 cancelar_reseña_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar reseña", callback_data="cancelar_resena")]
 ])
+
+def registrar_operacion(usuario, accion):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    linea = f"[{now}] Profesor '{usuario}' {accion}\n"
+
+    os.makedirs("logs", exist_ok=True)
+    if os.path.exists(LOG_PATH):
+        with open(LOG_PATH, "r", encoding="utf-8") as f:
+            lineas = f.readlines()[-999:]  # conservamos 999 previas
+    else:
+        lineas = []
+
+    lineas.append(linea)
+    with open(LOG_PATH, "w", encoding="utf-8") as f:
+        f.writelines(lineas)
 
 
 # end region
@@ -161,6 +177,10 @@ async def manejar_archivo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     with open(ruta_archivo, "w", encoding="utf-8") as f:
         json.dump(datos, f, indent=4, ensure_ascii=False)
+    
+    usuario = context.user_data.get("usuario", "Desconocido")
+    registrar_operacion(usuario, f"ha reemplazado el archivo: {nombre_archivo}")
+
 
     await update.message.reply_text(f"✅ Archivo '{nombre_archivo}' reemplazado correctamente.")
 
@@ -201,7 +221,7 @@ async def recibir_clave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         context.user_data["es_superadmin"] = profesor["usuario"] == "superadmin"
 
         await update.message.reply_text(
-            f"🔓 Bienvenido, {profesor['nombre']}!", 
+            f"🔓 Bienvenido, {profesor['nombre']}! Recuerde que puede ver el registro de operaciones usando el comando /log", 
             reply_markup=menu_profesor
         )
         return ConversationHandler.END
@@ -525,6 +545,9 @@ async def recibir_relacionadas_optativa(update: Update, context: ContextTypes.DE
         f"👥 Plazas: {texto_plazas}\n"
     )
 
+    usuario = context.user_data.get("usuario", "Desconocido")
+    registrar_operacion(usuario, f"ha creado la optativa: {nombre}")
+
     if relacionadas:
         texto_resumen += "📘 Asignaturas relacionadas:\n" + "\n".join(f"• {a}" for a in relacionadas)
     else:
@@ -575,6 +598,9 @@ async def procesar_eliminar_optativas(update: Update, context: ContextTypes.DEFA
             no_encontradas.append(nombre)
 
     guardar_optativas(optativas)
+
+    usuario = context.user_data.get("usuario", "Desconocido")
+    registrar_operacion(usuario, f"ha eliminado las siguientes optativas: {', '.join(eliminadas)}")
 
     # Desasignar estudiantes que tenían alguna optativa eliminada
     if eliminadas:
@@ -627,6 +653,7 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
     estudiantes = cargar_estudiantes()
     nuevos = 0
     duplicados = []
+    est_nuevos = []
 
     for linea in lineas:
         partes = linea.strip().split()
@@ -639,11 +666,16 @@ async def recibir_estudiantes(update: Update, context: ContextTypes.DEFAULT_TYPE
         if ya_existe:
             duplicados.append(f"{nombre} ({grupo})")
             continue
+        else:
+            est_nuevos.append(f"{nombre} ({grupo})")
 
         estudiantes.append({"nombre": nombre, "grupo": grupo, "optativa": ""})
         nuevos += 1
 
     guardar_estudiantes(estudiantes)
+
+    usuario = context.user_data.get("usuario", "Desconocido")
+    registrar_operacion(usuario, f"ha agregado los siguientes estudiantes: {', '.join(est_nuevos)}")
 
     respuesta = f"✅ {nuevos} estudiante(s) agregado(s).\n"
     if duplicados:
@@ -657,6 +689,7 @@ async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_
     texto = update.message.text.strip()
     lineas = texto.split("\n")
     estudiantes = cargar_estudiantes()
+    elim = []
 
     if texto == "TODO":
         guardar_estudiantes([])
@@ -682,8 +715,12 @@ async def recibir_nombre_eliminar(update: Update, context: ContextTypes.DEFAULT_
             no_encontrados.append(linea)
         else:
             eliminados += 1
+            elim.append(f"{nombre} ({grupo})")
 
     guardar_estudiantes(estudiantes)
+
+    usuario = context.user_data.get("usuario", "Desconocido")
+    registrar_operacion(usuario, f"ha eliminado los siguientes estudiantes: {', '.join(elim)}")
 
     respuesta = f"✅ {eliminados} estudiante(s) eliminado(s).\n"
     if no_encontrados:
@@ -1039,7 +1076,25 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
         await update.message.reply_text("❌ Error procesando la consulta.")
         print("Error:", e)
 
+async def enviar_log(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in usuarios_logueados:
+        await update.message.reply_text("❌ Este comando es solo para profesores.")
+        return
 
+    if not os.path.exists(LOG_PATH):
+        await update.message.reply_text("📭 El registro de operaciones aún no existe.")
+        return
+
+    try:
+        await context.bot.send_document(
+            chat_id=update.effective_chat.id,
+            document=open(LOG_PATH, "rb"),
+            filename="registro_operaciones.txt",
+            caption="📄 Aquí tienes el registro de operaciones más reciente."
+        )
+    except Exception as e:
+        await update.message.reply_text(f"❌ Error al enviar el archivo: {str(e)}")
 
 
 # end region
@@ -1110,7 +1165,8 @@ if __name__ == "__main__":
         BotCommand("login", "Iniciar sesión como profesor"),
         BotCommand("rev", "Dejar una reseña sobre tu optativa"),
         BotCommand("vrev", "Ver reseñas de una optativa"),
-        BotCommand("start", "Ver optativas disponibles")
+        BotCommand("start", "Ver optativas disponibles"),
+        BotCommand("log", "Enviar el registro de operaciones")
     ])
 
     # Agregando handlers
@@ -1124,6 +1180,7 @@ if __name__ == "__main__":
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
     app.add_handler(MessageHandler(filters.Document.ALL, manejar_archivo))
+    app.add_handler(CommandHandler("log", enviar_log))
 
     print("🤖 Bot corriendo...")
     app.run_polling()
