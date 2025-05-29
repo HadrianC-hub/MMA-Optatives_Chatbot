@@ -25,6 +25,7 @@ OPTATIVAS_FILE = "data/optativas.json"
 PROFESORES_FILE = "data/profesores.json"
 RESEÑAS_FILE = "data/reseñas.json"
 LOG_PATH = "logs/registro_operaciones.txt"
+SUPERADMIN_PASSWORD = "admin1234"
 
 # ---------- TECLADO ESPECIAL PARA PROFESORES ----------
 menu_profesor = ReplyKeyboardMarkup([
@@ -232,7 +233,7 @@ async def recibir_clave(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return ConversationHandler.END
 
 def validar_credenciales(usuario, clave):
-    if usuario == "superadmin" and clave == "spr1234":
+    if usuario == "superadmin" and clave == SUPERADMIN_PASSWORD:
         return {"usuario": "superadmin", "nombre": "SuperAdmin"}
     profesores = cargar_profesores()
     for prof in profesores:
