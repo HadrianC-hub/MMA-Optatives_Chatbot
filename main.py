@@ -47,6 +47,7 @@ cancelar_reseña_inline = InlineKeyboardMarkup([
     [InlineKeyboardButton("❎ Cancelar reseña", callback_data="cancelar_resena")]
 ])
 
+# Función para registrar una operación realizada por algún profesor en el log
 def registrar_operacion(usuario, accion):
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     linea = f"[{now}] Profesor '{usuario}' {accion}\n"
@@ -1146,7 +1147,6 @@ ver_reseñas_handler = ConversationHandler(
     },
     fallbacks=[CallbackQueryHandler(cancelar_verresena_callback, pattern="^cancelar_verresena$")]
 )
-
 
 # end region
 # region Ejecución principal
