@@ -246,6 +246,50 @@ def escapar_markdown(texto):
         texto = texto.replace(c, f"\\{c}")
     return texto
 
+async def comando_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    es_profesor = user_id in usuarios_logueados
+
+    texto = "*🤖 Ayuda del Bot de Optativas*\n\n"
+    texto += "Aquí tienes los comandos disponibles:\n\n"
+    texto += "📚 *Estudiantes:*\n"
+    texto += "• `/start` – Ver las optativas disponibles\n"
+    texto += "• `/rev` – Dejar una reseña sobre tu optativa\n"
+    texto += "• `/vrev` – Ver reseñas de una optativa\n\n"
+
+    texto += "Para realizar una búsqueda en el chat respecto a una optativa:\n"
+    texto += "• Puedes buscar optativas escribiendo texto libre (ej: `machine learning o ciberseguridad`)\n"
+    texto += "• Los caracteres especiales `*` detrás de una palabra representa el nivel de importancia que se le debe dar en la búsqueda. Se pueden concatenar hasta 5 `*`)\n"
+    texto += "• Los caracteres especiales `!` delante de una palabra evita ese contenido en cualquier resultado mostrado.\n\n"
+
+    texto += "👨‍🏫 *Profesores:*\n"
+    texto += "• `/login` – Iniciar sesión como profesor\n"
+    if es_profesor:
+        texto += "• Enviar archivos `.json` para actualizar estudiantes, optativas o profesores. Estos archivos deben ser nombrados \n"
+        texto += "• `/log` – Descargar el registro de operaciones recientes\n"
+        texto += "• `/delrev` – Eliminar todas las reseñas realizadas por estudiantes (solo superadmin)\n"
+        texto += "• Menú con opciones de agregar/eliminar optativas, estudiantes y asignarlos\n"
+        texto += "ℹ️ Recuerde que al insertar TODO durante una eliminación de estudiantes u optativas, eliminará todos los datos referentes a estos campos."
+
+    await update.message.reply_markdown(texto)
+
+async def eliminar_todas_las_resenas(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    if user_id not in usuarios_logueados:
+        await update.message.reply_text("❌ Solo usuarios logueados pueden ejecutar este comando.")
+        return
+
+    usuario_logueado = context.user_data.get("usuario")
+    if usuario_logueado != "superadmin":
+        await update.message.reply_text("❌ Solo el superadmin puede eliminar todas las reseñas.")
+        return
+
+    with open(RESEÑAS_FILE, "w", encoding="utf-8") as f:
+        json.dump([], f, indent=4, ensure_ascii=False)
+
+    registrar_operacion("superadmin", "ha eliminado todas las reseñas del sistema")
+    await update.message.reply_text("🗑️ Todas las reseñas han sido eliminadas correctamente.")
+
 # end region
 # region Funciones de cancelación
 
@@ -1166,7 +1210,9 @@ if __name__ == "__main__":
         BotCommand("rev", "Dejar una reseña sobre tu optativa"),
         BotCommand("vrev", "Ver reseñas de una optativa"),
         BotCommand("start", "Ver optativas disponibles"),
-        BotCommand("log", "Enviar el registro de operaciones")
+        BotCommand("log", "Enviar el registro de operaciones"),
+        BotCommand("help", "Ayuda para principiantes"),
+        BotCommand("delrev", "Eliminar todas las reseñas (solo superadmin)")
     ])
 
     # Agregando handlers
@@ -1177,10 +1223,12 @@ if __name__ == "__main__":
     app.add_handler(resena_handler)
     app.add_handler(ver_reseñas_handler)
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("log", enviar_log))
+    app.add_handler(CommandHandler("help", comando_help))
+    app.add_handler(CommandHandler("delrev", eliminar_todas_las_resenas))
     app.add_handler(login_conv)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, manejar_mensaje))
     app.add_handler(MessageHandler(filters.Document.ALL, manejar_archivo))
-    app.add_handler(CommandHandler("log", enviar_log))
 
     print("🤖 Bot corriendo...")
     app.run_polling()
