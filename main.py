@@ -247,6 +247,12 @@ def escapar_markdown(texto):
         texto = texto.replace(c, f"\\{c}")
     return texto
 
+async def enviar_mensaje_largo(update, context, texto, parse_mode=None):
+    max_len = 4000  # un poco menos de 4096 para margen
+    partes = [texto[i:i+max_len] for i in range(0, len(texto), max_len)]
+    for parte in partes:
+        await update.message.reply_text(parte, parse_mode=parse_mode)
+
 async def comando_help(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     es_profesor = user_id in usuarios_logueados
@@ -491,7 +497,7 @@ async def mostrar_resenas_optativa(update: Update, context: ContextTypes.DEFAULT
             comentario = escapar_markdown(r["comentario"])
             mensaje += f"⭐ {r['puntuacion']}/5 — @{usuario}\n_{comentario}_\n\n"
 
-    await update.message.reply_markdown(mensaje)
+    await enviar_mensaje_largo(update, context, mensaje, parse_mode="Markdown")
     return ConversationHandler.END
 
 async def cancelar_verresena_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -864,7 +870,7 @@ async def ver_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = "👨‍🏫 *Lista de profesores:*\n\n"
     for prof in profesores:
         mensaje += f"• *{prof['nombre']}* — Usuario: `{prof['usuario']}`\n"
-    await update.message.reply_markdown(mensaje)
+    await enviar_mensaje_largo(update, context, mensaje, parse_mode="Markdown")
 
 async def recibir_agregar_profesores(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("usuario") != "superadmin":
@@ -1035,7 +1041,7 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if coincidencias_opt:
         opt = coincidencias_opt[0]
         mensaje = f"📘 *{opt['nombre']}*\n👨‍🏫 Profesor: {opt['profesor']}\n📝 {opt.get('descripcion', 'Sin descripción')}"
-        await update.message.reply_markdown(mensaje)
+        await enviar_mensaje_largo(update, context, mensaje, parse_mode="Markdown")
         return
 
     # Buscar por nombre de profesor
@@ -1049,7 +1055,7 @@ async def manejar_mensaje(update: Update, context: ContextTypes.DEFAULT_TYPE):
         mensaje = f"👨‍🏫 *{cursos[0]['profesor']}* imparte:\n\n"
         for c in cursos:
             mensaje += f"• *{c['nombre']}* — {c.get('descripcion', '')}\n"
-        await update.message.reply_markdown(mensaje)
+        await enviar_mensaje_largo(update, context, mensaje, parse_mode="Markdown")
 
 # end region
 # region Manejo de consultas
@@ -1071,7 +1077,7 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
                     mensaje += f"\n• *{opt['nombre']}* - {opt['descripcion']}"
             else:
                 mensaje += "\n(No imparte ninguna optativa)"
-            await update.message.reply_markdown(mensaje)
+            await enviar_mensaje_largo(update, context, mensaje, parse_mode="Markdown")
             return
 
     # Si no es profesor, buscar por modelo vectorial
@@ -1090,7 +1096,8 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
             await update.message.reply_text("🔍 No se encontraron optativas relacionadas.")
             return
 
-        mensaje = "🔍 *Resultados más relevantes:*\n\n"
+        await update.message.reply_markdown("🔍 *Resultados más relevantes:*\n")
+
         for opt in optativas:
             plazas = "Ilimitadas" if opt.get("plazas") == -1 else opt.get("plazas", "No disponible")
             relacionadas = opt.get("relacionadas", [])
@@ -1101,21 +1108,21 @@ async def consulta_estudiante(update: Update, context: ContextTypes.DEFAULT_TYPE
             mejor = max(resenas_opt, key=lambda r: r["puntuacion"], default=None)
             peor = min(resenas_opt, key=lambda r: r["puntuacion"], default=None)
 
-            # Formato para reseñas
             mejor_txt = f"⭐ Mejor reseña ({mejor['puntuacion']}/5):\n  _{mejor['comentario']}_ — @{escapar_markdown(mejor['usuario_telegram'])}" if mejor else "⭐ Mejor reseña: (ninguna)"
             peor_txt = f"😕 Peor reseña ({peor['puntuacion']}/5):\n  _{peor['comentario']}_ — @{escapar_markdown(peor['usuario_telegram'])}" if peor else "😕 Peor reseña: (ninguna)"
 
-            mensaje += (
+            mensaje_opt = (
                 f"• *{opt['nombre']}*\n"
                 f"  👨‍🏫 Profesor: {opt['profesor']}\n"
                 f"  📝 {opt.get('descripcion', 'Sin descripción')}\n"
                 f"  👥 Plazas disponibles: {plazas}\n"
                 f"  📘 Asignaturas relacionadas:\n{relacionadas_str}\n"
                 f"  {mejor_txt}\n"
-                f"  {peor_txt}\n\n"
+                f"  {peor_txt}"
             )
 
-        await update.message.reply_markdown(mensaje)
+            await enviar_mensaje_largo(update, context, mensaje_opt, parse_mode="Markdown")
+
 
 
     except Exception as e:

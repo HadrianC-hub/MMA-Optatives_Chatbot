@@ -1,47 +1,69 @@
 [
     {
-        "nombre": "Desarrollo Web Avanzado",
-        "profesor": "Luna Mart\u00ednez",
-        "descripcion": "HTML, CSS, JavaScript, frameworks modernos y arquitectura de aplicaciones web escalables.",
-        "plazas": -1,
+        "nombre": "Introducci\u00f3n a la comunicaci\u00f3n cient\u00edfica",
+        "profesor": "Fernando Ra\u00fal Rodr\u00edguez Flores",
+        "descripcion": "Objetivo de la asignatura: \nQue los estudiantes sean capaces de comunicar resultados cient\u00edficos, de manera correcta y amena, en forma de presentaci\u00f3n oral, documento escrito o material audiovisual, utilizando las herramientas existentes para esos prop\u00f3sitos.\n\nSistema de conocimientos: \nAspectos esenciales de la comunicaci\u00f3n: objetivo, p\u00fablico, beneficio, y estrucutras l\u00f3gica.  Canales de comunicaci\u00f3n visuales, auditivos y cin\u00e9ticos.  Control de la atenci\u00f3n.  La importancia de la emoci\u00f3n y el entretenimiento.  Reglas de la comunicaci\u00f3n.  Elementos b\u00e1sicos del humor aplicado a la comunicaci\u00f3n.\nElementos b\u00e1sicos de una presentaci\u00f3n: aperturas, desarrollo, cierro.  Elementos b\u00e1sicos de dise\u00f1o gr\u00e1fico: contraste, alineaci\u00f3n, proximidad, repetici\u00f3n.  Regla del 7x7 en presentaciones.\nElementos b\u00e1sicos de redacci\u00f3n cient\u00edfica.  Estilos de redacci\u00f3n.  Organizaci\u00f3n del documento.  Referencias bibliogr\u00e1ficas.  Gestores bibliogr\u00e1ficos.  LaTeX, Word, LibreOffice.\nElementos b\u00e1sicos de audiovisuales.  Comunicaci\u00f3n de la ciencia para p\u00fablicos no especializados.\nEvaluaci\u00f3n: Presentaci\u00f3n de los temas de investigaci\u00f3n de los estudiantes.\n\nBibliograf\u00eda:\nG. Michael Campbell. Bullet proof presentations. Career Press, 2003.\nMichael Alley. The craft of scientific presentations. Springer 2003.\nRobin Williams. The non-designer\u2019s design book. 2nd Edition. Peachpit press. California. 2004.",
+        "plazas": 20,
         "relacionadas": []
     },
     {
-        "nombre": "Ciberseguridad",
-        "profesor": "El \u00d1e\u00f1e",
-        "descripcion": "Aprende a proteger sistemas inform\u00e1ticos frente a ataques y vulnerabilidades.",
-        "plazas": 4,
-        "relacionadas": []
-    },
-    {
-        "nombre": "Programaci\u00f3n Competitiva",
-        "profesor": "Valent\u00edn S\u00e1nchez",
-        "descripcion": "\u00a1Entrena para las olimpiadas de inform\u00e1tica! Algoritmos, estructuras de datos y optimizaci\u00f3n",
-        "plazas": 3,
-        "relacionadas": []
-    },
-    {
-        "nombre": "Dise\u00f1o de Interfaces",
-        "profesor": "Ana L\u00f3pez",
-        "descripcion": "Enfocado en UX/UI, prototipado r\u00e1pido y accesibilidad para todos los usuarios.",
-        "plazas": -1,
-        "relacionadas": []
-    },
-    {
-        "nombre": "Small Data",
-        "profesor": "Fernando",
-        "descripcion": "Es como big data pero peque\u00f1a",
-        "plazas": 4,
-        "relacionadas": []
-    },
-    {
-        "nombre": "Optativa nueva",
-        "profesor": "Juancito",
-        "descripcion": "Esta es una optativa nueva 123",
-        "plazas": 3,
+        "nombre": "Introducci\u00f3n a la Programaci\u00f3n Web",
+        "profesor": "MSc. Fernando Rodriguez Flores, Lic Javier Rodriguez S\u00e1nchez",
+        "descripcion": "A\u00f1os y carreras a las que va dirigido: Estudiantes de segundo a\u00f1o de licenciatura en Matem\u00e1tica.\n \nObjetivo de la asignatura: \n\n   Presentar los elementos b\u00e1sicos de la programaci\u00f3n web y la gesti\u00f3n de bases de datos a estudiantes de Matem\u00e1tica.\nSistema de conocimientos:\n\n  Funcionamiento interno de una aplicaci\u00f3n web: frontend, backend.   Elementos b\u00e1sicos de  HTML, CSS, Javascript.  Elementos b\u00e1sicos de bases de datos relacionales.  Introducci\u00f3n a SQL.  Elementos b\u00e1sicos del funcionamiento de un ORM (Object Relational Mapping).  Introducci\u00f3n a la biblioteca Django de Python.\nEvaluaci\u00f3n:\n\nSeminarios y tareas individuales.\n\nBibliograf\u00eda:\n  - J.D Gauchat \"El gran Libro de HTML5, CSS3, JavaScript\", 3ra Edici\u00f3n, Marcombo, 2017\n  - Brian Yu, \"Web Programming with Python and JavaScript\" Harvard University, Division of Continuing Education",
+        "plazas": 10,
         "relacionadas": [
-            "Literatura cl\u00e1sica",
-            "Taxonom\u00eda"
+            "Programaci\u00f3n",
+            "Base de Datos"
         ]
+    },
+    {
+        "nombre": "T\u00f3picos de Matem\u00e1tica Aplicada",
+        "profesor": "MSc. Fernando Rodriguez Flores",
+        "descripcion": "A\u00f1os y carreras a las que va dirigido: Estudiantes de segundo a\u00f1o de Ciencia de la Computaci\u00f3n.\n \nObjetivo de la asignatura: \n\n El objetivo de la asignatura es que los estudiantes realizen un trabajo en el que apliquen conocimientos y habilidades relacionadas con las asignaturas que han recibido hasta el segundo semestre de segundo a\u00f1o: ecuaciones diferenciales, \u00e1lgebra lineal num\u00e9rica, matem\u00e1tica num\u00e9rica y probabilidades.\nSistema de conocimientos:\n\n   Introducci\u00f3n a la investigaci\u00f3n en matem\u00e1tica aplicada.  EDOs aplicadas al an\u00e1lisis de batallas.  Elementos b\u00e1sicos de procesamiento de im\u00e1genes.  Elementos de regresi\u00f3n simb\u00f3lica.  Regresi\u00f3n simb\u00f3lica para EDOs.  Elementos b\u00e1sicos de redes neuronales. Elementos de visualizaci\u00f3n de algoritmos num\u00e9ricos.  Elementos matem\u00e1tico/computacionales del dise\u00f1o de juegos.  Introducci\u00f3n a la matem\u00e1tica de los malabares.\nEvaluaci\u00f3n:\n\nLos estudiantes deben realizar un trabajo investigativo relacionado con los elementos presentados en la asignatura.  Deben hacer la revisi\u00f3n bibliogr\u00e1fica, proponer una soluci\u00f3n, implementarla, realizar experimentos num\u00e9ricos, escribir un documento t\u00e9cnico y realizar una presentaci\u00f3n oral de elementos t\u00e9cnicos.\n\nBibliograf\u00eda:\nProbabilities and statistics for computer Scientists.\u201d, Michael Baron. 2nd Edition. CRC Press. 2014.\n\"Scientific Computing. An Introductory Survey\". M. Heath. 2nd Edition.  McGraw-Hill Book Company, 2002\nLawrence Perko. Differential Equations and Dynamical Systems. Third Edition. Editorial Springer (Texto Digital)\nHam, E. Tabletop game design for video game designers. Routledge.  2015\nPolster, B. The mathematics of juggling. Springer-Verlag.  2000.",
+        "plazas": 15,
+        "relacionadas": [
+            "Estructura de Datos y Algoritmos",
+            "Ecuaciones Diferenciales Ordinarias",
+            "\u00c1lgebra Lineal",
+            "Matem\u00e1tica Num\u00e9rica",
+            "Probabilidades"
+        ]
+    },
+    {
+        "nombre": "T\u00f3picos de Matem\u00e1tica Aplicada???",
+        "profesor": "MSc. Fernando Rodriguez Flores",
+        "descripcion": "A\u00f1os y carreras a las que va dirigido: Estudiantes de 4to a\u00f1o Ciencia de la Computaci\u00f3n\n \nObjetivo de la asignatura: \n\n    El objetivo de la asignatura es presentar elementos b\u00e1sicos de metaprogramaci\u00f3n en Common Lisp, en particular el sistema de macros. \nSistema de conocimientos:\n\nIntroducci\u00f3n a Common Lisp.  Sistema de macros.  Programaci\u00f3n orientada a objetos basada en funciones gen\u00e9ricas.  Dise\u00f1o de lenguajes de dominio espec\u00edfico.  Herramientas para la creaci\u00f3n de generadores de c\u00f3digo en m\u00faltiples lenguajes.\nEvaluaci\u00f3n:\n\nLos estudiantes deben dise\u00f1ar e implementar un lenguaje de dominio espec\u00edfico utilizando Common Lisp y las herramientas creadas en la facultad para este prop\u00f3sito.\nBibliograf\u00eda:\nGraham, Paul. On Lisp: Advanced Techniques for Common Lisp. Prentice Hall, 1993. ISBN 0130305529.\nGraham, Paul. ANSI Common Lisp. Prentice Hall, 1996. ISBN 0-13-370875-6.\nBarski, Conrad. Land of Lisp: Learn to Program in Lisp, One Game at a Time!. No Starch Press, 2010. ISBN 978-1-59327-281-4.\nKeene, Sonya E.. Object-Oriented Programming in Common Lisp: A Programmer's Guide to CLOS. Addison-Wesley, 1989. ISBN 0-201-17589-4.",
+        "plazas": 4,
+        "relacionadas": [
+            "Programaci\u00f3n"
+        ]
+    },
+    {
+        "nombre": "Introducci\u00f3n matem\u00e1tica a las Redes Neuronales Artificiales",
+        "profesor": "MSc. Fernando Rodriguez Flores",
+        "descripcion": "Duraci\u00f3n: 32 horas\n \nA\u00f1os y carreras a las que va dirigido: Estudiantes de Licenciatura en Matem\u00e1tica y carreras afines.  Requisitos m\u00ednimos: programaci\u00f3n b\u00e1sica en Python y elementos de funciones reales de varias variables.\n \nObjetivo de la asignatura: \n\n   Presentar los fundamentos matem\u00e1ticos b\u00e1sicos de las redes neuronales, as\u00ed como la justificaci\u00f3n matem\u00e1tica de su funcionamiento y los resultados que brindan.\nSistema de conocimientos:\n\n  Soluci\u00f3n de problemas de optimizaci\u00f3n con Python.  Problema de m\u00ednimos cuadrados.  Las redes neuronales como caso particular de funci\u00f3n param\u00e9trica.  Entrenamiento de una red neuronal.  Algoritmo de m\u00e1ximo descenso.  M\u00e1ximo descenso estoc\u00e1stico.  Teoremas de aproximaci\u00f3n universal.  Algunas aplicaciones de redes neuronales.  Uso de bibliotecas de redes neuronales.\nEvaluaci\u00f3n:\n\nResolver un problema pr\u00e1ctico usando redes neuronales.\n\nBibliograf\u00eda:\n\n - Aggarwal, Charu C. Neural Networks and Deep Learning: A Textbook. Springer, 2018.\n  \n - Deisenroth, Marc Peter, A. Aldo Faisal, and Cheng Soon Ong. Mathematics for Machine Learning. Cambridge University Press, 2020.",
+        "plazas": 25,
+        "relacionadas": [
+            "Machine Learning",
+            "IA",
+            "Programaci\u00f3n"
+        ]
+    },
+    {
+        "nombre": "Modelos matem\u00e1ticos para el arte y la cultura",
+        "profesor": "MSc. Fernando Rodriguez Flores",
+        "descripcion": "Duraci\u00f3n: 32 horas\n \nA\u00f1os y carreras a las que va dirigido: Estudiantes de Licenciatura en Matem\u00e1tica\n \nObjetivo de la asignatura: \n\n   - Mostrar aplicaciones existentes de la matem\u00e1tica en temas relacionadas con el arte, la cultura y el sexo.\n   - Usar los conocimientos y habilidades adquiridos durante su formaci\u00f3n para obtener nuevos resultados en estas \u00e1reas.\nSistema de conocimientos:\n\n   Modelos matem\u00e1ticos para los malabares.  Geometr\u00eda y metaheur\u00edsticas aplicadas al origami.  Elementos de la teor\u00eda de juegos aplicadas al proceso de cortejo y de selecci\u00f3n de pareja.  Algoritmos de emparejamiento.  Ecuaciones diferenciales ordinarias para modelar relaciones interpersonales. Algoritmos de recomendaci\u00f3n para sitios de citas y para el humor.  Procesos estoc\u00e1sticos y problema de la parada \u00f3ptima.  Teor\u00eda de grupos aplicada al cubo Rubik y al baile.  Elementos b\u00e1sicos de la teor\u00eda de grafos aplicados a redes sociales.  Inferencia estad\u00edstica para la distribuci\u00f3n de las parejas en un contexto determinado.  M\u00e9todos y modelos de optimizaci\u00f3n en los malabares, la vida de pareja y el sexo.\n\nEvaluaci\u00f3n:\n\nConstruir un modelo (o modificar uno existente) para describir, estudiar y analizar alg\u00fan aspecto del arte y la cultura relacionado con los intereses de los estudiantes.\n\nBibliograf\u00eda:\n-Clio Cresswell. Mathematics and Sex. Allen & Unwin, Crows Nest, Australia, 2003.\n-Hannah Fry.  The mathematics of love: Patterns, proofs and the search for the ultimate equation. Simon & Schuster, London. 2015.\n-Edward Frenkel. Love and Math: The heart of hidden reality. Basics Books.  Preseus Books Group.  New York. 2013.\n-John Gottam et al. The mathematics of marriage: Dynamic non linear models. The MIT Press. 2002\n-Burkard Polster.  The mathematics of juggling.  Springer.  2002.\n-Wei Li.  A new design method framework for open origami design problems. Tesis doctoral, Texas A&M University.  2014.\n-Joyner W.D.  The mathematics of Rubik's Cube.  Lecture notes.  1997.",
+        "plazas": -1,
+        "relacionadas": [
+            "Modelos Matem\u00e1ticos Aplicados",
+            "Ecuaciones Diferenciales Ordinarias"
+        ]
+    },
+    {
+        "nombre": "EcuacionesDiferenciales++",
+        "profesor": "Msc. Fernando Rodr\u00edguez Flores",
+        "descripcion": "Duraci\u00f3n:\n\n48 horas \n\nA\u00f1os y carreras a las que va dirigido:\n\n4to a\u00f1o de Ciencia de la Computaci\u00f3n\n\nObjetivo de la asignatura:\n\nBrindar a los estudiantes herramientas te\u00f3ricas y computacionales para modelar situaciones y problemas del mundo real usando ecuaciones diferenciales, as\u00ed como para solucionar los modelos resultantes e interpretar los resultados. \n\nSistema de conocimientos:\n\n  - Ecuaciones diferenciales ordinarias\n  - Ecuaciones en derivadas parciales\n  - Ecuaciones \u00e1lgebro diferenciales\n  - Ecuaciones diferenciales ordinarias con retardo\n  - Ecuaciones diferenciales estoc\u00e1sticas\n  - Modelos basados en problemas de Cauchy\n  - Modelos basados en problemas de frontera\n  - Modelos basados en ecuaciones en derivadas parciales\n  - Redes Neuronales Diferenciales\n  - M\u00e9todos cl\u00e1sicos para la soluci\u00f3n num\u00e9rica de ecuaciones diferenciales\n  - M\u00e9todos para la soluci\u00f3n de ecuaciones diferenciales basados en redes neuronales\n  - Tipos de modelos\n    - modelos de poblaciones (basados en EDOs y en EDPs)\n    - situaciones de la industria y la tecnolog\u00eda (EDOs y EDPs)\n    - modelos econ\u00f3micos (basados en ecuaciones diferenciales estoc\u00e1sticas)\n    - modelos para la ense\u00f1anza aprendizaje basados en EDOs\n    - Ecuaciones diferenciales ordinarias para modelar Redes Neuronales\n\nEvaluaci\u00f3n:\n\nAplicar los contenidos del curso a un problema espec\u00edfico, que est\u00e9 relacionado con alguno de los grupos de investigaci\u00f3n de la facultad.\n\n\nBibliograf\u00eda:\n\n  - Robert Smith?.  Mathematical Modelling of Zombies.  2014.  University of Ottawa Press.  \n  - Bernhelm Boo\u00df-Bavnbek, Jens H\u00f8yrup.  Mathematics and war.  2003.  Birkh\u00e4user\n  - John Cannarella and Joshua A. Spechler.  Epidemiological modeling of online social network dynamics.  2014.\n  - Alfio Borzi.  Modelling With Ordinary Differential Equations. A comprehensive approach. 2020.  CRC Press.\n  - T. P. Dreyer.  Modelling With Ordinary Differential Equations. 1993.  CRC Press.",
+        "plazas": 7,
+        "relacionadas": []
     }
 ]

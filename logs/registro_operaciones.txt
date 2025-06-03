@@ -4,3 +4,12 @@
 [2025-05-27 20:29] Profesor 'superadmin' ha eliminado los siguientes estudiantes: 
 [2025-05-27 20:30] Profesor 'superadmin' ha eliminado los siguientes estudiantes: Juan Juan Juan (C111), L L L (C111)
 [2025-05-29 17:37] Profesor 'superadmin' ha eliminado todas las reseñas del sistema
+[2025-06-01 14:31] Profesor 'superadmin' ha creado la optativa: Introducción a la comunicación científica
+[2025-06-01 14:33] Profesor 'superadmin' ha creado la optativa: Introducción a la Programación Web
+[2025-06-01 14:36] Profesor 'superadmin' ha creado la optativa: Tópicos de Matemática Aplicada
+[2025-06-01 14:38] Profesor 'superadmin' ha creado la optativa: Tópicos de Matemática Aplicada???
+[2025-06-01 14:39] Profesor 'superadmin' ha creado la optativa: Introducción matemática a las Redes Neuronales Artificiales
+[2025-06-01 14:39] Profesor 'superadmin' ha eliminado las siguientes optativas: Introducción matemática a las Redes Neuronales Artificiales
+[2025-06-01 14:41] Profesor 'superadmin' ha creado la optativa: Introducción matemática a las Redes Neuronales Artificiales
+[2025-06-01 14:43] Profesor 'superadmin' ha creado la optativa: Modelos matemáticos para el arte y la cultura
+[2025-06-01 14:44] Profesor 'superadmin' ha creado la optativa: EcuacionesDiferenciales++
