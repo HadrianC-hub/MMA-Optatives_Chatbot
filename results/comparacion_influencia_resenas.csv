@@ -1,0 +1,8 @@
+optativa_id,optativa_nombre,promedio_sin_influencia,promedio_con_influencia,cambio_porcentual,t_statistic,p_value,significativo
+7,EcuacionesDiferenciales++,9.86,12.06,22.31237322515214,-3.8101074601693723,0.00024685592738338643,True
+1,Introducción a la comunicación científica,9.78,11.4,16.564417177914123,-2.6229488123262574,0.010113102275111197,True
+5,Introducción matemática a las Redes Neuronales Artificiales,9.96,10.28,3.2128514056224744,-0.542005988715324,0.5890911552908995,False
+6,Modelos matemáticos para el arte y la cultura,9.72,10.02,3.0864197530864086,-0.4726422276298253,0.6375351585597893,False
+3,Tópicos de Matemática Aplicada,10.18,9.36,-8.055009823182715,1.3930561688090488,0.16675478182209796,False
+2,Introducción a la Programación Web,10.42,8.66,-16.890595009596925,2.8302775061971763,0.005660880335717505,True
+4,Tópicos de Matemática Aplicada???,10.08,8.22,-18.45238095238095,3.157330988978017,0.0021243948975913367,True
